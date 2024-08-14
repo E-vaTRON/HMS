@@ -1,0 +1,247 @@
+﻿@implements IDialogContentComponent<AddDrugModel>
+@namespace Blazor.Web
+@using System.Text.RegularExpressions
+
+<FluentDialogBody style="max-height: 400px; overflow-y: auto;">
+    <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+        <FluentGridItem xs="12" sm="6">
+            <FluentCard>
+                
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+        <FluentTextField @bind-Value="@Content.Description"
+                         Required
+                         @onfocusout=@(() => ValidateAndSetIsItemDescriptionValid())>
+            <FluentIcon Value="@(new Icons.Regular.Size16.Box())" Slot="start" Color="Color.Neutral" />Item description:
+        </FluentTextField>
+        @if (!Content.IsItemDescriptionValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid item description</FluentBadge>
+        }
+        <FluentTextField @bind-Value="@Content.Supplier"
+                         Required
+                         @onfocusout=@(() => ValidateAndSetIsSupplierValid())>
+            <FluentIcon Value="@(new Icons.Regular.Size16.BuildingShop())" Slot="start" Color="Color.Neutral" />Supplier:
+        </FluentTextField>
+        @if (!Content.IsSupplierValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid supplier</FluentBadge>
+        }
+        <FluentNumberField @bind-Value="@Content.Quantity" Min="0"
+                           Required
+                           @onfocusout=@(() => ValidateAndSetIsQuantityValid())>
+            <FluentIcon Value="@(new Icons.Regular.Size16.Apps())" Slot="start" Color="Color.Neutral" />Quantity:
+        </FluentNumberField>
+        @if (!Content.IsQuantityValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide quantity</FluentBadge>
+        }
+        <FluentNumberField @bind-Value="@Content.Price" Min="0"
+                           Required
+                           @onfocusout=@(() => ValidateAndSetIsPriceValid())>
+            <FluentIcon Value="@(new Icons.Regular.Size16.Money())" Slot="start" Color="Color.Neutral" />Price:
+        </FluentNumberField>
+        @if (!Content.IsPriceValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide price</FluentBadge>
+        }
+        <FluentDatePicker @bind-Value="@Content.OrderDate" Label="Order date:"
+                          Required
+                          @onfocusout=@(() => ValidateAndSetIsOrderDateValid()) />
+        <FluentButton Appearance="Appearance.Accent" @onclick=ValidateDrug>Check drug information</FluentButton>
+    </FluentStack>
+            </FluentCard>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="6">
+            <div style="max-height: 400px; overflow-y: auto;">
+            <FluentInputFile Id="my-file-uploader"
+                             Mode="InputFileMode.SaveToTemporaryFolder"
+                             Multiple="false"
+                             ShowPreview="true"
+                             MaximumFileCount="1"
+                             MaximumFileSize="50000000"
+                             Accept="image/*"
+                             OnCompleted="@OnCompleted"
+                             OnFileError="@OnError"
+                             Style="height: 300px;"
+                             Class="demopanel">
+
+                <label for="my-file-uploader">
+                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                </label>
+
+                <div>
+                    Drag file here you wish to upload,
+                    or <label for="my-file-uploader">browse</label>
+                    for them<span style="color: red;">*</span>.
+                    <br />
+                </div>
+
+            </FluentInputFile>
+            @if (Files.Any())
+            {
+                <h4>File(s) uploaded:</h4>
+                <ul>
+                    @foreach (var file in Files)
+                    {
+                        <li>
+                            <b>@file.Name</b> 🔹
+                            @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                            @file.ContentType 🔹
+                            @file.LocalFile?.FullName
+                            @file.ErrorMessage
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if(!string.IsNullOrEmpty(UploadError))
+            {
+                <h4>Upload error:</h4>
+                <p style="color: red">@UploadError</p>
+            }
+            </div>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public AddDrugModel Content { get; set; } = default!;    
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+    
+    #region [ Files ]
+
+    string UploadError = string.Empty;
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {        
+        var file = files.FirstOrDefault();
+        if (file == null)
+        {
+            // No file was uploaded
+            UploadError = "No file was uploaded.";
+            return;
+        }
+        else if (!file.ContentType.StartsWith("image/"))
+        {
+            // The uploaded file is not an image
+            UploadError = "The uploaded file is not an image.";
+            return;
+        }
+        Files = files.ToArray();
+
+        Content.DrugFiles = Files
+            .Where(file => file.LocalFile != null || file.Buffer != null || file.Stream != null)
+            .Select(file =>
+            {
+                IFormFile formFile;
+
+                if (file.LocalFile != null)
+                {
+                    // Create an instance of FormFile using LocalFile
+                    formFile = new FormFile(
+                        file.LocalFile.OpenRead(),
+                        0,
+                        file.LocalFile.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Buffer != null)
+                {
+                    // Create an instance of FormFile using Buffer
+                    formFile = new FormFile(
+                        new MemoryStream(file.Buffer.Data),
+                        0,
+                        file.Buffer.Data.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Stream != null)
+                {
+                    // Create an instance of FormFile using Stream
+                    formFile = new FormFile(
+                        file.Stream,
+                        0,
+                        file.Stream.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported upload mode");
+                }
+
+                return formFile;
+            })
+            .ToArray();
+        UploadError = string.Empty;
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+    }
+    #endregion
+    protected override async Task OnInitializedAsync()
+    {
+        ValidateDrug();
+        await base.OnInitializedAsync();
+    }
+
+    void ValidateAndSetIsItemDescriptionValid()
+    {
+        Content.IsItemDescriptionValid = !string.IsNullOrEmpty(Content.Description);
+    }
+
+    void ValidateAndSetIsSupplierValid()
+    {
+        string pattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        Content.IsSupplierValid = Regex.IsMatch(Content.Supplier ?? "", pattern);
+    }
+
+    void ValidateAndSetIsQuantityValid()
+    {
+        Content.IsQuantityValid = (Content.Quantity > 0);
+    }
+
+    void ValidateAndSetIsPriceValid()
+    {
+        Content.IsPriceValid = (Content.Price > 0);
+    }
+
+    void ValidateAndSetIsOrderDateValid()
+    {
+        Content.IsOrderDateValid = (Content.OrderDate is not null);
+    }    
+
+    void ValidateDrug()
+    {
+        ValidateAndSetIsItemDescriptionValid();
+        ValidateAndSetIsSupplierValid();
+        ValidateAndSetIsQuantityValid();
+        ValidateAndSetIsPriceValid();
+        ValidateAndSetIsOrderDateValid();
+
+        if(Content.IsItemDescriptionValid
+            && Content.IsSupplierValid
+            && Content.IsQuantityValid 
+            && Content.IsPriceValid
+            && Content.IsOrderDateValid)
+            Dialog!.TogglePrimaryActionButton(true);
+    }
+}

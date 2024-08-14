@@ -1,0 +1,92 @@
+﻿@using Blazored.LocalStorage
+
+@inject NavigationManager _navigator;
+@inject ILocalStorageService _localStorage;
+@inject UserManager _userManager;
+
+
+@namespace Blazor.Web
+
+<style>
+    .lba4hoai-logo-custom-font-size {
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+
+<FluentAnchor Href="/home" Class="lba4hoai-logo-custom-font-size" Appearance="Appearance.Outline">HMS</FluentAnchor>
+<div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
+
+    @* <FluentDesignTheme @bind-Mode="@Mode" OfficeColor="OfficeColor.Sway"/> *@
+    <FluentPersona Name="@(@userInfo is not null ? userInfo.Email : "No Email")"
+                    Status="PresenceStatus.Available"
+                    Image="@(@userInfo is not null ? userInfo.ProfileImageUrl : null)"
+                    StatusTitle="You are online"
+                    ImageSize="35px" />
+        <FluentSpacer Width="15" />
+@*         <FluentSwitch Label="Dark mode" 
+                        Value=@isDarkMode
+                        ValueChanged=ChangeTheme/> *@
+        <FluentSpacer Width="15"/>
+        <FluentButton @onclick="@(async () => await Logout())" BackgroundColor="#861b2d">Logout</FluentButton>
+
+</div>
+
+
+@code {
+    User? userInfo;
+
+    bool isDarkMode;
+
+    [Parameter]
+    public EventCallback<bool> DarkModeToggled { get; set; }
+    DesignThemeModes Mode { get; set; } = DesignThemeModes.Dark;
+
+    protected override Task OnInitializedAsync()
+    {
+
+        Mode = isDarkMode ? DesignThemeModes.Dark : DesignThemeModes.Light;
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Fetch user information from localStorage
+            var userGuid = await _localStorage.GetItemAsync<string>("userId");
+            if (userGuid is null)
+                return;
+
+
+            userInfo = await _userManager.FindByGuidAsync(userGuid);
+            if (userInfo is null)
+                return;
+
+
+            // var savedThemeMode = await _localStorage.GetItemAsync<string>("theme");
+            // if (savedThemeMode is null)
+            //     isDarkMode = true;
+            // isDarkMode = savedThemeMode == "Dark" ? true : false;
+            // Mode = savedThemeMode == "Dark" ? DesignThemeModes.Dark : DesignThemeModes.Light;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        // Handle logout logic
+        await _localStorage.ClearAsync();
+        _navigator.NavigateTo("/"); // Redirect to the logout page or perform logout actions
+    }
+
+    private async Task ChangeTheme(bool value)
+    {
+        // isDarkMode = value;
+        // await DarkModeToggled.InvokeAsync(isDarkMode);
+        // Mode = isDarkMode ? DesignThemeModes.Dark : DesignThemeModes.Light;
+        // await _localStorage.SetItemAsStringAsync("theme", isDarkMode ? "Dark" : "Light");
+    }
+
+
+}

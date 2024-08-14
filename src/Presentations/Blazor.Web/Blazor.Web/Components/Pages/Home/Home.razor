@@ -1,0 +1,367 @@
+﻿@page "/home"
+@using System.Globalization;
+@using Blazored.LocalStorage;
+@using Microsoft.EntityFrameworkCore;
+@inject IBillsService billsService;
+@inject IBillsRepository billsRepository;
+@inject IServicesRepository servicesRepository;
+@inject IBillServicesRepository billServicesRepository;
+@inject IUsersRepository usersRepository;
+@inject IDrugRepository drugRepository;
+@inject NavigationManager _navigator;
+
+@rendermode InteractiveServer
+@inherits AuthenticationComponentBase.AuthenticationComponentBase
+
+<PageTitle>Home</PageTitle>
+
+<FluentCard>
+    <FluentCard>
+                @* @onchange=@( async () => await RenderYearlyBillAsync(true)) *@
+        <FluentCombobox Label="Select year" Items=@YearOptions 
+                OptionText="@(i => i.Text)" 
+                OptionValue="@(i => i.Value)"
+                @bind-SelectedOption=selectedYear 
+                Multiple=false 
+                Autocomplete="ComboboxAutocomplete.Both" 
+                ValueChanged=@( async () => await UpdateYearlyBillAsync())/>
+        <BarChart @ref="barChart" Class="mb-4" />
+        <h3>
+            Collection amount: @collectionAmount
+        </h3>
+    </FluentCard>
+@*     <br/>
+    <FluentStack>
+        <FluentCard>
+            <DoughnutChart @ref="doughnutChart" Width="500" Class="mb-5" />
+            <br/>
+            <h3>
+                Total amount:
+                @drugsAmount
+            </h3>
+        </FluentCard>
+        <br/>
+    </FluentStack> *@
+</FluentCard>
+
+@code {
+
+    #region [ Properties ]
+
+    private BarChart barChart = default!;
+    private LineChart lineChart = default!;
+    private DoughnutChart doughnutChart = default!;
+    private DoughnutChartOptions doughnutChartOptions = default!;
+    private ChartData chartData = default!;
+    private ChartData lineChartData = default!;
+
+    string[]? backgroundColors;
+    string totalBillAmount = "";
+    string collectionAmount = "";
+    string drugsAmount = "";
+    Option<string> selectedYear = new Option<string>()
+    {
+           Value = (DateTime.Now.Year).ToString(),
+           Text = (DateTime.Now.Year).ToString(),
+           Selected = true
+    };
+
+    IEnumerable<BillWithServicesDTO>? BillsWithServices;
+    List<Option<string>> YearOptions;
+    List<Service>? Services;
+    List<string>? MonthlyList;
+
+    private Random random = new();
+
+    #endregion
+
+    #region [ Overrides ]
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            if (await base.IsNotLogin())
+            {
+                this._navigator.NavigateTo("/login", replace: true);
+                return;
+            }
+            await RefreshAsync();
+        }
+
+    }
+
+    #endregion
+
+    #region [ Methods ]
+
+    private async Task RefreshAsync()
+    {
+
+        Services = await servicesRepository.FindAll(x => x.IsDeleted == false).ToListAsync();
+
+        DateTime startDate = new DateTime(int.Parse(selectedYear.Text), 1, 1);
+        MonthlyList = Enumerable.Range(0, 12)
+                            .Select(i => startDate.AddMonths(i).ToString("MMMM yyyy"))
+                            .ToList();
+        BillsWithServices = await billsService.GetBillWithServicesAsync();
+        YearOptions = InitYearlyComboBoxOptions(BillsWithServices);
+        await RenderYearlyBillAsync();
+        await RenderDrugChartAsync();
+        var billWithServices = await billsService.GetBillWithServicesAsync();
+        var usersList = await usersRepository
+                                .FindAll(x => x.IsDeleted == false)
+                                .Select(x => new { x.Id, x.LotSize })
+                                .ToDictionaryAsync(x => x.Id, x => x.LotSize);
+
+        totalBillAmount = billWithServices.Sum(bill =>
+            {
+                decimal billTotal = 0;
+
+                foreach (var service in bill.Services)
+                {
+                    switch (service.calculationType)
+                    {
+                        case ServiceCalculationTypeDTO.DirectAddition:
+                            billTotal += service.price;
+                            break;
+                        case ServiceCalculationTypeDTO.LotSizeMultiplication:
+                            if (usersList.TryGetValue(bill.UserId, out var lotSize))
+                            {
+                                billTotal += lotSize * service.price;
+                            }
+                            break;
+                    }
+                }
+
+                return billTotal;
+            }).ToString();
+
+        collectionAmount = billWithServices.Where(x => x.PaidDate is not null).Sum(bill =>
+        {
+            decimal billTotal = 0;
+
+            foreach (var service in bill.Services)
+            {
+                switch (service.calculationType)
+                {
+                    case ServiceCalculationTypeDTO.DirectAddition:
+                        billTotal += service.price;
+                        break;
+                    case ServiceCalculationTypeDTO.LotSizeMultiplication:
+                        if (usersList.TryGetValue(bill.UserId, out var lotSize))
+                        {
+                            billTotal += lotSize * service.price;
+                        }
+                        break;
+                }
+            }
+            billTotal += bill.ExcessAmount;
+            billTotal -= bill.UnderPaidAmount;
+            return billTotal;
+        }).ToString("C2", CultureInfo.GetCultureInfo("en-PH"));
+
+        StateHasChanged();
+    }
+
+    private async Task RenderYearlyBillAsync()
+    {
+        lineChartData = new ChartData
+        {
+            Labels = MonthlyList,
+            Datasets = new List<IChartDataset>()
+        };
+
+        foreach (var service in Services)
+        {
+            var barChartDataset = new BarChartDataset
+            {
+                Label = service.Name,
+                Data = new List<double>()
+            };
+
+            for (int i = 1; i <= 12; i++)
+            {
+                var monthlyAmount = GetMonthlyBillAmount(service.Id.ToString(), i, Int32.Parse(selectedYear.Text ?? "2023"));
+                barChartDataset.Data.Add(monthlyAmount);
+            }
+
+            barChartDataset.BackgroundColor = new List<string> { service.Color };
+            barChartDataset.CategoryPercentage = 0.8;
+            barChartDataset.BarPercentage = 1;
+
+            lineChartData.Datasets.Add(barChartDataset);
+        }
+        
+        var options = CreateBarChartOptions();
+
+        await barChart.InitializeAsync(lineChartData, options);
+    }
+
+    private async Task UpdateYearlyBillAsync()
+    {
+        if (lineChartData is null || lineChartData.Datasets is null || !lineChartData.Datasets.Any()) return;
+        var newDatasets = new List<IChartDataset>();
+        
+        foreach (var service in Services)
+        {
+            var barChartDataset = new BarChartDataset
+            {
+                Label = service.Name,
+                Data = new List<double>()
+            };
+
+            for (int i = 1; i <= 12; i++)
+            {
+                var monthlyAmount = GetMonthlyBillAmount(service.Id.ToString(), i, Int32.Parse(selectedYear.Text ?? "2023"));
+                barChartDataset.Data.Add(monthlyAmount);
+            }
+
+            barChartDataset.BackgroundColor = new List<string> { service.Color };
+            barChartDataset.CategoryPercentage = 0.8;
+            barChartDataset.BarPercentage = 1;
+
+            newDatasets.Add(barChartDataset);
+        }        
+        
+        lineChartData.Datasets = newDatasets;
+        var options = CreateBarChartOptions();
+        
+        await barChart.UpdateAsync(lineChartData, options);
+    }
+
+    private BarChartOptions CreateBarChartOptions()
+    {
+        var options = new BarChartOptions();
+
+        // Interaction
+        options.Interaction.Mode = InteractionMode.Index;
+
+        // Title
+        options.Plugins.Title.Text = "Services cost over 12 months";
+        options.Plugins.Title.Color = "White";
+        options.Plugins.Title.Display = true;
+        options.Plugins.Title.Font.Size = 20;
+
+        // Responsive
+        options.Responsive = true;
+
+        // X-Axis
+        options.Scales.X!.Title!.Text = "Months";
+        options.Scales.X.Title.Color = "White";
+        options.Scales.X.Title.Display = true;
+
+        // Y-Axis
+        options.Scales.Y!.Title!.Text = "Amount 💵";
+        options.Scales.Y.Title.Color = "White";
+        options.Scales.Y.Title.Display = true;
+
+        return options;
+    }
+
+    private double GetMonthlyBillAmount(string serviceId, int month, int year)
+    {
+        var targetMonth = new DateTime(year, month, 1);
+
+        if(BillsWithServices is null)
+            return 0;
+
+        decimal totalMoney = BillsWithServices.Where(bill => 
+                                                        bill.Services.Any(service => 
+                                                            serviceId == service.id
+                                                            && bill.PaidDate != null
+                                                            && bill.PaidDate.Value.Month == targetMonth.Month
+                                                            && bill.PaidDate.Value.Year == targetMonth.Year
+                                                        )
+                                                    )
+                                                    .Sum(bill =>
+                                                    {
+                                                        var service = bill.Services.First(s => s.id == serviceId);
+                                                        decimal serviceAmount = 0;
+
+                                                        switch (service.calculationType)
+                                                        {
+                                                            case ServiceCalculationTypeDTO.DirectAddition:
+                                                                serviceAmount = service.price * service.quantity;
+                                                                break;
+
+                                                            case ServiceCalculationTypeDTO.LotSizeMultiplication:
+                                                                serviceAmount = service.price * bill.LotSize;
+                                                                break;
+                                                        }
+
+                                                        // Add ExcessAmount and subtract UnderPaidAmount
+                                                        serviceAmount += bill.ExcessAmount;
+                                                        serviceAmount -= bill.UnderPaidAmount;
+
+                                                        return serviceAmount;
+                                                    });
+        return Convert.ToDouble(totalMoney);
+    }
+
+    private List<Option<string>> InitYearlyComboBoxOptions(IEnumerable<BillWithServicesDTO>? billsWithServices)
+    {
+        var uniqueYears = BillsWithServices
+            ?.Select(bill => bill.CreatedDate.Year)
+            .Distinct()
+            .OrderByDescending(year => year)
+            .ToList() ?? new List<int>();
+
+        return uniqueYears
+            .Select(year => new Option<string>
+            {
+                Value = year.ToString(),
+                Text = year.ToString(),
+                Selected = year == DateTime.Now.Year
+            })
+            .ToList();
+    }
+
+    private async Task RenderDrugChartAsync()
+    {
+        var drugs = await drugRepository.FindAll(x => x.IsDeleted == false).ToListAsync();
+
+        // Calculate total amount
+        decimal totalAmount = drugs.Sum(e => e.Quantity * e.Price);
+        drugsAmount = totalAmount.ToString("C2", CultureInfo.GetCultureInfo("en-PH"));
+
+        // Create chart data
+        chartData = new ChartData
+            {
+                Labels = drugs.Select(e => e.Description).ToList()!,
+                Datasets = new List<IChartDataset>
+            {
+                new DoughnutChartDataset
+                {
+                    Data = drugs.Select(e => Math.Round((e.Quantity * e.Price) / totalAmount * 100, 2))
+                                .ToList()
+                                .ConvertAll(d => (double)d),
+                    BackgroundColor = ColorBuilder.CategoricalTwelveColors
+                                                  .Take(drugs.Count)
+                                                  .ToList(),
+                }
+            }
+            };
+
+        // Configure chart options
+        // doughnutChartOptions = new DoughnutChartOptions
+        //     {
+        //         Responsive = true,
+        //         Plugins = new()
+        //         {
+        //             Title = new()
+        //             {
+        //                 Text = "Drugs Distribution",
+        //                 Display = true,
+        //                 Color = "white"
+        //             }
+        //         }
+        //     };
+
+        // Initialize the chart
+        //await doughnutChart.InitializeAsync(chartData, doughnutChartOptions);
+    }
+    #endregion
+}

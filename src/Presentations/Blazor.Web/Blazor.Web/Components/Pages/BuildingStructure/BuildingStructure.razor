@@ -1,0 +1,121 @@
+﻿@page "/buildingstructure"
+@using System.Globalization;
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Services</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())"
+                          Appearance="Appearance.Accent">
+                Add schedule
+            </FluentButton>
+        </FluentToolbar>
+    </FluentCard>
+
+    <FluentGrid AdaptiveRendering="true" Style="width:100%">
+        <FluentGridItem xs="6" sm="8">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                @if (Floors is null)
+                {
+                    <FluentProgressRing />
+                }
+                else
+                {
+                    <FluentCard>
+                        <FluentAccordion>
+                            @foreach (var floor in Floors)
+                            {
+                                <FluentAccordionItem Heading="@floor.Name">
+                                    <FluentStack>
+                                        <div class="button-container">
+                                            @foreach (var room in floor.Rooms)
+                                            {
+                                                <FluentButton class="room-button" Style="margin:5px"
+                                                              BackgroundColor="@GetButtonColor(room.IsBusy)"
+                                                              OnClick="async () => await OpenRoomInfoDialog(room)">
+                                                    @room.Name
+                                                </FluentButton>
+                                            }
+                                        </div>
+                                    </FluentStack>
+                                </FluentAccordionItem>
+                            }
+
+                        </FluentAccordion>
+                    </FluentCard>
+                }
+            </FluentStack>
+        </FluentGridItem>
+        <FluentGridItem xs="6" sm="4">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                @if (UsersInDatabase is null)
+                {
+                    <FluentProgressRing />
+                }
+                else
+                {
+                    <FluentCard AreaRestricted="false">
+                        <FluentDatePicker Label="Select Date" @bind-Value="@SelectedDate" />
+                        <div />
+                        <FluentDivider Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                       Role="DividerRole.Presentation"
+                                       Style="width:100%" />
+                        <div />
+                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                            @* @foreach (var room in RoomEvents.Where(x => x.StartDate?.Date == SelectedDate?.Date).ToList()) *@
+                            @foreach (var room in RoomEvents)
+                            {
+                                var service = Services.FirstOrDefault(x => x.Id.ToString() == room.ServiceId);
+                                var serviceDuration = Math.Round((room.EndDate! - room.StartDate!).Value.TotalMinutes);
+                                @if (service != null)
+                                {
+                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
+                                        <FluentCard>
+                                            <FluentGrid AdaptiveRendering="true" Style="width:100%; height:100%">
+                                                <FluentGridItem xs="1" sm="1">
+                                                    <div style="background-color: @service.Color; width:10px; height:100%; border-radius: 3px;"> </div>
+                                                </FluentGridItem>
+                                                <FluentGridItem xs="3" sm="3">
+                                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                                                        <div>
+                                                            @room.StartDate!.Value.TimeOfDay.ToString(@"hh\:mm")
+                                                        </div>
+                                                        <div>
+                                                            @serviceDuration Minutes
+                                                        </div>
+                                                    </FluentStack>
+                                                </FluentGridItem>
+                                                <FluentGridItem xs="1" sm="1">
+                                                    <FluentDivider Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical"
+                                                                   Role="DividerRole.Presentation"
+                                                                   Style="height: 100%;" />
+                                                </FluentGridItem>
+                                                <FluentGridItem xs="7" sm="5">
+                                                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                                                        <div>
+                                                            Room @room.RoomId
+                                                        </div>
+                                                        <div>
+                                                            Service @service.Name
+                                                        </div>
+                                                    </FluentStack>
+                                                </FluentGridItem>
+                                            </FluentGrid>
+                                        </FluentCard>
+                                    </FluentStack>
+                                }
+                            }
+                        </FluentStack>
+                    </FluentCard>
+                }
+            </FluentStack>
+        </FluentGridItem>
+    </FluentGrid>
+
+</FluentStack>

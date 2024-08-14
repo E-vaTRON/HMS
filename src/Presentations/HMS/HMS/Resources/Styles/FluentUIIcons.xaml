@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS">
+    <FontImageSource
+        x:Key="Phone24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_phone_24_regular}"
+        Color="{x:Static app:AppColors.Black}" />
+
+    <FontImageSource
+        x:Key="Password24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_password_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="ReceiptMoney24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_receipt_money_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Search24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_search_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="ScanCamera24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_scan_camera_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+
+    <FontImageSource
+        x:Key="DocumentBulletListClock24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_document_bullet_list_clock_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Add24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_add_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Add12IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_add_12_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="AnimalDog24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_animal_dog_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="AnimalCat24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_animal_cat_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="LightBulbFilament24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_lightbulb_filament_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Clear24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_dismiss_circle_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Camera24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_camera_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Heart24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_heart_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="New24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_new_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Setting24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_settings_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="FolderUpload24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_folder_arrow_up_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Mail24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_mail_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Call24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_call_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Chat24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_chat_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="PeopleTeam24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_people_team_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="PersonFeedback24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_person_feedback_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="ArrowCircleLeft24Regular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_arrow_circle_left_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+
+    <FontImageSource
+        x:Key="Person24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_person_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+    <FontImageSource
+        x:Key="ContactCard24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_contact_card_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="AppGeneric24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_app_generic_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Alert24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_alert_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+
+    <FontImageSource
+        x:Key="BookInfo24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_book_information_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="WeatherMoon24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_weather_moon_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="Flash28IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_flash_28_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+
+    <FontImageSource
+        x:Key="Megaphone24IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{x:Static app:FluentUIIcon.Ic_fluent_megaphone_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="More16IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_more_horizontal_16_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.PetaverseSpecial},
+                                Dark={x:Static app:AppColors.PetaverseSpecial}}" />
+
+    <FontImageSource
+        x:Key="Home16IconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_home_16_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="PetListAddIconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_add_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+    <FontImageSource
+        x:Key="PetListCameraIconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_camera_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+
+
+    <FontImageSource
+        x:Key="WikiScanCameraIconRegular"
+        FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+        Glyph="{Static app:FluentUIIcon.Ic_fluent_scan_camera_24_regular}"
+        Color="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                Dark={x:Static app:AppColors.White}}" />
+</ResourceDictionary>

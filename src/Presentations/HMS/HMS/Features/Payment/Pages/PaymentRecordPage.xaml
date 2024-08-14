@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.PaymentRecordPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:dg="clr-namespace:Maui.DataGrid;assembly=Maui.DataGrid"
+    x:Name="rootPage"
+    Padding="10"
+    x:DataType="app:PaymentRecordPageViewModel">
+
+    <Shell.TitleView>
+        <Grid>
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="28"
+                HorizontalOptions="Start"
+                Text="{x:Binding Title,
+                                 Mode=OneWay}"
+                TextColor="White"
+                VerticalOptions="Center" />
+        </Grid>
+    </Shell.TitleView>
+
+    <ScrollView>
+        <Grid>
+            <Frame Grid.Row="1" BackgroundColor="{x:AppThemeBinding Dark=#333333, Light=#ffffff}">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="24"
+                        HorizontalOptions="Center"
+                        Text="Payment History"
+                        TextColor="White" />
+                    <dg:DataGrid
+                        BackgroundColor="Transparent"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        HeaderBackground="LightGreen"
+                        HeaderHeight="50"
+                        HeightRequest="{x:OnPlatform Android=600,
+                                                     iOS=600}"
+                        IsRefreshing="{Binding IsRefreshing}"
+                        ItemsSource="{Binding Items}"
+                        PullToRefreshCommand="{x:Binding RefreshCommand}"
+                        RowHeight="70"
+                        SelectedItem="{Binding SelectedItem}"
+                        SelectionEnabled="True">
+                        <dg:DataGrid.NoDataView>
+                            <Label
+                                HorizontalOptions="Center"
+                                Text="No payment to process"
+                                VerticalOptions="Center" />
+                        </dg:DataGrid.NoDataView>
+                        <dg:DataGrid.Columns>
+                            <dg:DataGridColumn Title="Date" PropertyName="DateOfPayment" />
+                            <dg:DataGridColumn Title="Item description" PropertyName="Items">
+                                <dg:DataGridColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CollectionView ItemsSource="{x:Binding}">
+                                            <CollectionView.ItemsLayout>
+                                                <LinearItemsLayout Orientation="Vertical" />
+                                            </CollectionView.ItemsLayout>
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="app:ItemDescription">
+                                                    <Border BackgroundColor="{x:Binding Color}">
+                                                        <Label
+                                                            FontFamily="{x:Static app:FontNames.Paulle1V}"
+                                                            FontSize="16"
+                                                            Text="{x:Binding Name}"
+                                                            TextColor="Black" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </DataTemplate>
+                                </dg:DataGridColumn.CellTemplate>
+                            </dg:DataGridColumn>
+                            <dg:DataGridColumn Title="Amount" PropertyName="Payment" />
+                            <dg:DataGridColumn Title="Paid" PropertyName="Paid" />
+                            <dg:DataGridColumn Title="Balance" PropertyName="Balance" />
+                        </dg:DataGrid.Columns>
+                        <dg:DataGrid.RowsBackgroundColorPalette>
+                            <dg:PaletteCollection>
+                                <Color>#F2F2F2</Color>
+                                <Color>#FFFFFF</Color>
+                            </dg:PaletteCollection>
+                        </dg:DataGrid.RowsBackgroundColorPalette>
+                        <dg:DataGrid.Resources>
+                            <ResourceDictionary>
+                                <!--<conv:StreakToColorConverter x:Key="StreakToColorConverter" />-->
+                            </ResourceDictionary>
+                        </dg:DataGrid.Resources>
+                    </dg:DataGrid>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+    </ScrollView>
+</app:BasePage>

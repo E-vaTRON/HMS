@@ -1,0 +1,120 @@
+﻿@page "/requests"
+@using System.Globalization;
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+@* <style>
+    /* Fix height and enable scrolling */
+    .grid {
+        overflow-y: auto;
+    }
+
+
+    /* Style the custom page links*/
+    .page-buttons {
+        margin: 1rem 0;
+        align-items: center;
+    }
+
+        .page-buttons button {
+            background: #d6d7d8;
+            color: black;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.4rem;
+            transition: transform 0.3s ease-out;
+            margin: 0.25rem;
+        }
+
+            .page-buttons button:active {
+                background: #a7c1ff !important;
+                color: white;
+                transform: scale(0.95) translateY(-0.15rem);
+                transition-duration: 0.05s;
+            }
+
+            .page-buttons button:hover:not(.current) {
+                background: #c0c9dc;
+            }
+
+            .page-buttons button.current {
+                background: #3771f4;
+                color: white;
+            }
+
+</style> *@
+
+<PageTitle>Requests</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())"
+                          Appearance="Appearance.Accent"
+                          OnClick="@(async () => await AddRequestDialog())">
+                Add request
+            </FluentButton>
+        </FluentToolbar>
+    </FluentCard>
+    <FluentCard>
+@*         @if (Items is null)
+        {
+            <FluentProgressRing />
+        }
+        else
+        { *@
+            <FluentDataGrid Items="@Items" Style="overflow:auto;" ResizableColumns=true GridTemplateColumns="1.5fr 2.5fr 1.5fr" Pagination="@pagination"  ShowHover="true" TGridItem="RequestModel">
+@*                 <SelectColumn TGridItem="RequestModel"
+                              SelectMode="DataGridSelectMode.Single"
+                              @bind-SelectedItems="@SelectedItems" /> *@
+                <TemplateColumn Title="User" Align=Align.Start>
+                    <FluentPersona Name="@context.UserInfo.NormalizedEmail"
+                                   Status="PresenceStatus.Available"
+                                   Image="@context.UserInfo.ProfileImageUrl"
+                                   StatusTitle="You are online"
+                                   ImageSize="35px" />
+                </TemplateColumn>
+                <TemplateColumn Title="Symptoms" Align=Align.Start>
+                    @if (context!.SymptomModels is null || !context!.SymptomModels.Any())
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No services were selected </FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                            @foreach (var symptom in context!.SymptomModels)
+                            {
+                                <FluentBadge Fill="somevalue" BackgroundColor="#13d6c1" Color="#333333">@symptom.Name</FluentBadge>
+                            }
+                        </FluentHorizontalScroll>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Actions" Align=Align.Start>
+                    <FluentStack>
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Copy())" Appearance="Appearance.Outline" @onclick=@(async () => await CopyToClipboard(context.Id.ToString())) />
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.ReceiptMoney())" Appearance="Appearance.Outline" @onclick=@(async () => await ConvertRequestToBill(context)) />
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+            <br />
+            <div class="page-buttons">
+                <FluentStack HorizontalGap="5">
+                    @for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
+                    {
+                        var capturedIndex = pageIndex;
+                        var page = (capturedIndex + 1).ToString();
+                        <FluentButton @onclick="@(() => GoToPageAsync(capturedIndex))"
+                                      Appearance="@PageButtonAppearance(capturedIndex)"
+                                      aria-current="@AriaCurrentValue(capturedIndex)"
+                                      aria-label="@AriaLabel(capturedIndex)">
+                            @(page)
+                        </FluentButton>
+                    }
+                </FluentStack>
+            </div>
+@*         } *@
+    </FluentCard>
+
+</FluentStack>

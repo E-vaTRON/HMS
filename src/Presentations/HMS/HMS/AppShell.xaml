@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="HMS.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:local="clr-namespace:HMS"
+    Title="HMS"
+    Shell.FlyoutBehavior="Disabled">
+
+    <Shell.Resources />
+
+    <TabBar>
+        <ShellContent
+            Title="Sign In"
+            ContentTemplate="{DataTemplate app:SignInPage}"
+            Route="sign-in" />
+    </TabBar>
+
+    <TabBar Route="main">
+        <ShellContent
+            Title="Request"
+            ContentTemplate="{DataTemplate app:RequestPage}"
+            Route="request" />
+    </TabBar>
+
+    <TabBar x:Name="main" Route="main">
+        <Tab
+            Title="Announcements"
+            Icon="{x:StaticResource Megaphone24IconRegular}"
+            Route="announcements">
+            <ShellContent ContentTemplate="{DataTemplate app:AnnouncementsPage}" />
+        </Tab>
+        <Tab
+            Title="Home"
+            Icon="{x:StaticResource Home16IconRegular}"
+            Route="home">
+            <ShellContent ContentTemplate="{DataTemplate app:HomePage}" />
+        </Tab>
+        <Tab
+            Title="Billing"
+            Icon="{x:StaticResource ReceiptMoney24IconRegular}"
+            Route="billing">
+            <ShellContent ContentTemplate="{DataTemplate app:BillingPage}" />
+        </Tab>
+        <Tab
+            Title="Payment Record"
+            Icon="{x:StaticResource DocumentBulletListClock24Regular}"
+            Route="payment-record">
+            <ShellContent ContentTemplate="{DataTemplate app:PaymentRecordPage}" />
+        </Tab>
+        <Tab
+            Title="Profile"
+            Icon="{x:StaticResource ContactCard24IconRegular}"
+            Route="profile">
+            <ShellContent ContentTemplate="{DataTemplate app:ProfilePage}" />
+        </Tab>
+    </TabBar>
+</Shell>

@@ -1,0 +1,155 @@
+@implements IDialogContentComponent<AnnouncementModel>
+@namespace Blazor.Web
+@using System.Globalization
+
+<FluentDialogBody>
+    <FluentGrid Spacing="3">
+        <FluentGridItem xs="12" sm="6">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentTextField @bind-Value=Content.Title 
+                                 Label="Title" 
+                                 Required
+                                 @onfocusout=@(() => ValidateAndSetIsTitleValid())/>
+                @if(!Content.IsTitleValid)
+                {
+                    <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Title is required</FluentBadge>
+                }
+                <FluentTextArea Cols="60" Rows="10" Label="Content"
+                                @bind-Value=Content.Content
+                                Resize="TextAreaResize.Both" 
+                                @onfocusout=@(() => ValidateAndSetIsDescriptionValid())/>
+                @if (!Content.IsDescriptionValid)
+                {
+                    <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Description is required</FluentBadge>
+                }
+                
+                    <FluentButton Appearance="Appearance.Accent" @onclick=ValidateAnnouncement>Check annoucement information</FluentButton>
+            </FluentStack>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="6">
+            <FluentInputFile Id="my-file-uploader"
+                             Mode="InputFileMode.SaveToTemporaryFolder"
+                             Multiple="false"
+                             ShowPreview="true"
+                             MaximumFileCount="1"
+                             MaximumFileSize="50000000"
+                             Accept=".jpg, .jpeg, .png, .gif, .pdf, .ppt, .pptx, .txt"
+                             OnCompleted="@OnCompleted"
+                             OnFileError="@OnError"
+                             Style="height: 300px;"
+                             Class="demopanel">
+
+                <label for="my-file-uploader">
+                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                </label>
+
+                <div>
+                    Drag file here you wish to upload,
+                    or <label for="my-file-uploader">browse</label>
+                    for them<span style="color: red;">*</span>.
+                    <br />
+                </div>
+            </FluentInputFile>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+<FluentDialogFooter>
+
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public AnnouncementModel Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ValidateAnnouncement();
+        await base.OnInitializedAsync();
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+    }
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        Files = files.ToArray();
+
+        Content.AttachedFiles = Files
+            .Where(file => file.LocalFile != null || file.Buffer != null || file.Stream != null)
+            .Select(file =>
+            {
+                IFormFile formFile;
+
+                if (file.LocalFile != null)
+                {
+                    // Create an instance of FormFile using LocalFile
+                    formFile = new FormFile(
+                        file.LocalFile.OpenRead(),
+                        0,
+                        file.LocalFile.Length,
+                        Path.GetFileNameWithoutExtension(file.Name), // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Buffer != null)
+                {
+                    // Create an instance of FormFile using Buffer
+                    formFile = new FormFile(
+                        new MemoryStream(file.Buffer.Data),
+                        0,
+                        file.Buffer.Data.Length,
+                        Path.GetFileNameWithoutExtension(file.Name),
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Stream != null)
+                {
+                    // Create an instance of FormFile using Stream
+                    formFile = new FormFile(
+                        file.Stream,
+                        0,
+                        file.Stream.Length,
+                        Path.GetFileNameWithoutExtension(file.Name),
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported upload mode");
+                }
+
+                return formFile;
+            })
+            .ToArray();
+    }
+
+    void ValidateAndSetIsTitleValid()
+        => Content.IsTitleValid = !string.IsNullOrWhiteSpace(Content.Title);
+
+    void ValidateAndSetIsDescriptionValid()
+        => Content.IsDescriptionValid = !string.IsNullOrWhiteSpace(Content.Content);
+
+    void ValidateAnnouncement()
+    {
+        ValidateAndSetIsTitleValid();
+        ValidateAndSetIsDescriptionValid();
+        if(Content.IsTitleValid && Content.IsDescriptionValid){
+            Dialog!.TogglePrimaryActionButton(true);
+        }
+    }
+}

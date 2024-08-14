@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="HMS.AnnouncementItemContentView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Name="root">
+    <ContentView.Resources>
+        <DataTemplate x:Key="AnnouncementsPageItemKeyValudeItemTemplate" x:DataType="app:AnnouncementsPageItemKeyValueModel">
+            <Label FontFamily="{x:Static app:FontNames.Paulle1V}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="{x:Binding Key}" />
+                        <Span Text=": " />
+                        <Span Text="{x:Binding Value}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </DataTemplate>
+
+        <LinearItemsLayout
+            x:Key="AnnouncementsPageItemKeyValudeItemLayout"
+            ItemSpacing="5"
+            Orientation="Vertical" />
+
+        <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsStringNotNullOrEmptyConverter" />
+    </ContentView.Resources>
+
+    <Border Padding="14" StrokeShape="RoundRectangle 8,8,8,8">
+        <VerticalStackLayout Spacing="8">
+            <Label
+                FontAttributes="Bold"
+                FontSize="Title"
+                Text="{x:Binding ComponentData.Title,
+                                 Source={x:Reference root}}" />
+            <Label
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="16"
+                LineBreakMode="WordWrap"
+                MaxLines="8"
+                Text="{x:Binding ComponentData.Description,
+                                 Source={x:Reference root}}" />
+            <Button
+                BackgroundColor="#18f335"
+                Clicked="ViewFile_Clicked"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="24"
+                IsVisible="{x:Binding ComponentData.FileUrl,
+                                      Source={x:Reference root},
+                                      Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
+                Text="View file"
+                TextColor="{x:Static app:AppColors.White}" />
+            <CollectionView
+                ItemTemplate="{x:StaticResource AnnouncementsPageItemKeyValudeItemTemplate}"
+                ItemsLayout="{x:StaticResource AnnouncementsPageItemKeyValudeItemLayout}"
+                ItemsSource="{x:Binding ComponentData.Items,
+                                        Source={x:Reference root}}" />
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

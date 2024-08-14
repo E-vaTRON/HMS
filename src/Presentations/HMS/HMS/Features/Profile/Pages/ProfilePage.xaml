@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.ProfilePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Title="ProfilePage"
+    Padding="14"
+    x:DataType="app:ProfilePageViewModel"
+    BackgroundColor="{x:AppThemeBinding Light=#ffffff,
+                                        Dark=#333333}"
+    Shell.BackgroundColor="#18f335">
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="*, auto">
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="28"
+                HorizontalOptions="Start"
+                TextColor="White"
+                VerticalOptions="Center">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="{x:Binding CurrentUser.FirstName}" />
+                        <Span Text=" " />
+                        <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="{x:Binding CurrentUser.MiddleName}" />
+                        <Span Text=" " />
+                        <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="{x:Binding CurrentUser.LastName}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </Grid>
+    </Shell.TitleView>
+
+
+    <ScrollView>
+        <Grid>
+            <Frame Margin="0,30,0,0" VerticalOptions="Start">
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="24"
+                        HorizontalOptions="Center"
+                        Text="{x:Binding CurrentUser.Email}" />
+                    <Frame BackgroundColor="{x:AppThemeBinding Light=#ffffff, Dark=#333333}">
+                        <VerticalStackLayout>
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <Image
+                                    HeightRequest="30"
+                                    HorizontalOptions="Center"
+                                    Source="{x:StaticResource ContactCard24IconRegular}"
+                                    VerticalOptions="Center"
+                                    WidthRequest="30" />
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="18"
+                                    HorizontalOptions="Center"
+                                    HorizontalTextAlignment="Center"
+                                    Text="Information"
+                                    VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <TableView BackgroundColor="{x:AppThemeBinding Light=#ffffff, Dark=#333333}" Intent="Menu">
+                                <TableRoot Title="Information">
+                                    <TableSection>
+                                        <TextCell Detail="{x:Binding CurrentUserFullName}" Text="Full Name" />
+                                        <TextCell Detail="{x:Binding CurrentUser.PhoneNumber}" Text="Phone number" />
+                                        <TextCell Detail="{x:Binding CurrentUser.Street}" Text="Street" />
+                                    </TableSection>
+                                </TableRoot>
+                            </TableView>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <!--<Frame BackgroundColor="{x:AppThemeBinding Light=#ffffff, Dark=#333333}">
+                        <VerticalStackLayout>
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                                <Image
+                                    HeightRequest="30"
+                                    HorizontalOptions="Center"
+                                    Source="{x:StaticResource Setting24IconRegular}"
+                                    VerticalOptions="Center"
+                                    WidthRequest="30" />
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="18"
+                                    HorizontalOptions="Center"
+                                    HorizontalTextAlignment="Center"
+                                    Text="Settings"
+                                    VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <TableView BackgroundColor="{x:AppThemeBinding Light=#ffffff, Dark=#333333}" Intent="Settings">
+                                <TableRoot>
+                                    <TableSection>
+                                        <SwitchCell
+                                            IsEnabled="False"
+                                            On="False"
+                                            Text="Dark Mode (In-progress)" />
+                                        <SwitchCell
+                                            IsEnabled="False"
+                                            On="False"
+                                            Text="Notification (In-progress)" />
+                                    </TableSection>
+                                </TableRoot>
+                            </TableView>
+                        </VerticalStackLayout>
+                    </Frame>-->
+                    <Button
+                        Command="{x:Binding ChangePasswordCommand}"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="24"
+                        Text="Change password"
+                        TextColor="{x:AppThemeBinding Light=#ffffff,
+                                                      Dark=#333333}" />
+                    <Button
+                        BackgroundColor="{x:Static app:AppColors.Red}"
+                        Command="{x:Binding LogoutCommand}"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="24"
+                        Text="Log out"
+                        TextColor="{x:Static app:AppColors.White}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!--<toolkit:AvatarView
+                CornerRadius="50"
+                HeightRequest="80"
+                HorizontalOptions="Center"
+                ImageSource="{x:Binding CurrentUser.UserAvatar,
+                                        Mode=OneWay}"
+                VerticalOptions="Start"
+                WidthRequest="80" />-->
+        </Grid>
+    </ScrollView>
+</app:BasePage>

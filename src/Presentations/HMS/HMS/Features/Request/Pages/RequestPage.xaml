@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.RequestPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:app="clr-namespace:HMS"
+    Title="RequestPage"
+    x:DataType="app:RequestPageViewModel"
+    Padding="20"
+    Shell.BackgroundColor="#18f335">
+
+    <app:BasePage.Resources>
+        <DataTemplate x:Key="SymptomGroupDataTemplate" 
+                      x:DataType="app:SymptomGroupModel">
+            <toolkit:Expander x:Name="SymptomGroupDataTemplateHeader" 
+                              Direction="Down" FlowDirection="LeftToRight" Margin="0, 5, 0, 5" >
+                <toolkit:Expander.Header>
+                    <Frame>
+                        <Grid ColumnDefinitions="0.8*, auto">
+                            <Label Grid.Column="0" FontAttributes="Bold"
+                                FontSize="Large"
+                                Text="{x:Binding Name}" />
+                            <Image Grid.Column="1" HeightRequest="30" WidthRequest="30"
+                                   Source="{x:StaticResource ArrowCircleLeft24Regular}">
+                                <!--<Image.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnHeaderTapped" />
+                                </Image.GestureRecognizers>-->
+                                <Image.Triggers>
+                                    <DataTrigger TargetType="Image" 
+                                                 Binding="{x:Binding Source={x:Reference SymptomGroupDataTemplateHeader}, 
+                                                                     Path=IsExpanded}" 
+                                                 Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <app:ImageRotateTriggerAction RotationAngle="-90" />
+                                        </DataTrigger.EnterActions>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Image" 
+                                                 Binding="{x:Binding Source={x:Reference SymptomGroupDataTemplateHeader}, 
+                                                                     Path=IsExpanded}" 
+                                                 Value="False">
+                                        <DataTrigger.EnterActions>
+                                            <app:ImageRotateTriggerAction RotationAngle="0" />
+                                        </DataTrigger.EnterActions>
+                                    </DataTrigger>
+                                </Image.Triggers>
+                            </Image>
+                        </Grid>
+                    </Frame>
+                </toolkit:Expander.Header>
+
+                <VerticalStackLayout>
+                    <CollectionView x:Name="SymptomDataCollectionView"
+                                    ItemsSource="{x:Binding Symptoms}" 
+                                    ItemTemplate="{x:StaticResource SymptomDataTemplate}"
+                                    SelectionMode="Multiple"
+                                    SelectionChanged="SymptomDataCollectionView_SelectionChanged"/>
+                </VerticalStackLayout>
+            </toolkit:Expander>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SymptomDataTemplate"
+                      x:DataType="app:SymptomModel">
+            <Border Margin="10, 2, 5, 2" 
+                    Padding="3" 
+                    StrokeThickness="0"
+                    BackgroundColor="White" 
+                    VerticalOptions="FillAndExpand">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="5" />
+                </Border.StrokeShape>
+                <VerticalStackLayout >
+                    <Label FontSize="Medium" Text="{Binding Name}"  
+                           Margin="5, 0, 0, 0" 
+                           HorizontalTextAlignment="Start" 
+                           HorizontalOptions="StartAndExpand"
+                           MinimumWidthRequest="300"
+                           MaximumWidthRequest="500"/>
+                </VerticalStackLayout>
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup Name="CommonStates">
+                        <VisualState Name="Normal">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="White"/>
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState Name="Selected">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="LightSkyBlue"/>
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+            </Border>
+        </DataTemplate>
+    </app:BasePage.Resources>
+    
+    <Shell.TitleView>
+        <Grid>
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="28"
+                HorizontalOptions="Start"
+                Text="{x:Binding Title,
+                                 Mode=OneWay}"
+                TextColor="White"
+                VerticalOptions="Center" />
+        </Grid>
+    </Shell.TitleView>
+
+    <app:BasePage.ToolbarItems>
+        <ToolbarItem
+            Command="{x:Binding GoHomeCommand}"
+            IconImageSource="{x:StaticResource ArrowCircleLeft24Regular}"
+            Text="Back" />
+    </app:BasePage.ToolbarItems>
+    
+    <Grid RowDefinitions="0.9*, 0.1*" RowSpacing="10">
+
+        <Frame Grid.Row="0" BackgroundColor="{x:AppThemeBinding Dark=#333333,
+                                                    Light=#ffffff}"
+                HasShadow="True"
+                HorizontalOptions="Center"
+                VerticalOptions="Start">
+
+                <CollectionView ItemsSource="{x:Binding SymptomGroups}"
+                                ItemTemplate="{x:StaticResource SymptomGroupDataTemplate}" />
+
+        </Frame>
+
+        <Frame Grid.Row="1" Padding="0">
+
+            <Button 
+                Text="Submit Request" 
+                Command="{x:Binding SubmitRequestCommand}"
+                />
+        </Frame>
+    </Grid>
+
+
+</app:BasePage>

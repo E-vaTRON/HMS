@@ -1,0 +1,101 @@
+﻿@page "/"
+@page "/login"
+@using Blazor.Web.Components.Pages.Login.Models;
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization;
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity
+@using System.Text
+@inherits LayoutComponentBase
+@rendermode InteractiveServer
+
+@inject NavigationManager _navigationManager
+@inject IAuthenticationService _authenticationService;
+@inject ILocalStorageService _storage; 
+@inject IToastService _toastService;
+
+<FluentDesignTheme OfficeColor="OfficeColor.Sway">
+<div style="display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw;">
+
+    <FluentCard Width="300px" Height="450px">
+        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalGap="15">
+            @* <div style="display: flex; justify-content: center;">
+                <img src="https://lba4storageaccount.blob.core.windows.net/generalfiles/lbalogo.png" alt="Logo" style="width: 100px; height: 100px;">
+            </div> *@
+            <br/>
+            <br/>
+            <br/>
+            <h3>Login</h3>
+            <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+            
+                <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" HorizontalGap="15">
+                    <div>
+                        <FluentTextField @bind-Value=loginModel.Email Label="Email:" TextFieldType="TextFieldType.Email" Style="width: 260px;" />
+                        <ValidationMessage For="@(() => loginModel.Email)" />
+                    </div>
+                    <div>
+                        <FluentTextField @bind-Value=loginModel.Password Label="Password:" TextFieldType="TextFieldType.Password" Style="width: 260px;" />
+                        <ValidationMessage For="@(() => loginModel.Password)" />
+                   </div>
+                        <FluentButton Appearance="Appearance.Accent" 
+                                      Type="Microsoft.FluentUI.AspNetCore.Components.ButtonType.Submit" 
+                                      Style="width: 260px;"
+                                      Loading="@isBusy">Login</FluentButton>
+                </FluentStack>
+            </EditForm>
+        </FluentStack>
+    </FluentCard>
+    </div>
+</FluentDesignTheme>
+<FluentToastProvider @rendermode="RenderMode.InteractiveServer" />
+
+@code {
+    private UserModel loginModel = new UserModel();
+
+    bool isBusy = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isBusy = true;
+        EmailUserLoginDTO loginInfo = new(loginModel.Email, loginModel.Password);
+        var response = await _authenticationService.AdminLoginWithEmail(loginInfo, default);
+        response.TryPickT0(out var result, out var error);
+        if (result is null)
+        {
+            _toastService.ShowToast(ToastIntent.Error, error.ErrorMessage);
+            isBusy = false;
+            return;
+        }
+
+        var token = result.accessToken;
+        if (token is null)
+        {
+            _toastService.ShowToast(ToastIntent.Error, "Can't get token");
+            isBusy = false;
+            return;
+        }
+
+        await _storage.SetItemAsStringAsync("token", token);
+        await _storage.SetItemAsStringAsync("userId", result.userGuid);
+
+        isBusy = false;
+        _navigationManager.NavigateTo("/home", replace: true);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            var token = await _storage.GetItemAsStringAsync("token");
+            if (token is not null)
+            {
+               // _navigationManager.NavigateTo("/home", replace: true);
+            }
+        }
+    }
+}

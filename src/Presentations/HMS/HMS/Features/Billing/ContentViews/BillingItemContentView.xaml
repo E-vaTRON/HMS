@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="HMS.BillingItemContentView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Name="root">
+
+    <ContentView.Resources>
+
+        <ResourceDictionary>
+            <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsStringNotNullOrEmptyConverter" />
+        </ResourceDictionary>
+
+        <DataTemplate x:Key="BillingPageItemKeyValudeItemTemplate" x:DataType="app:BillingPageItemKeyValueModel">
+            <Label FontFamily="{x:Static app:FontNames.Paulle1V}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="{x:Binding Key}" />
+                        <Span Text=": " />
+                        <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="{x:Binding Value}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </DataTemplate>
+
+        <LinearItemsLayout
+            x:Key="BillingPageItemKeyValudeItemLayout"
+            ItemSpacing="5"
+            Orientation="Vertical" />
+    </ContentView.Resources>
+
+    <Frame BackgroundColor="{x:Binding ComponentData.Color, Source={x:Reference root}}">
+        <VerticalStackLayout Spacing="5">
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="24"
+                Text="{x:Binding ComponentData.Title,
+                                 Source={x:Reference root}}" />
+            <!--<Label
+                LineBreakMode="WordWrap"
+                MaxLines="3"
+                Text="{x:Binding ComponentData.Description,
+                                 Source={x:Reference root}}" />-->
+            <CollectionView
+                ItemTemplate="{x:StaticResource BillingPageItemKeyValudeItemTemplate}"
+                ItemsLayout="{x:StaticResource BillingPageItemKeyValudeItemLayout}"
+                ItemsSource="{x:Binding ComponentData.Items,
+                                        Source={x:Reference root}}" />
+        </VerticalStackLayout>
+    </Frame>
+</ContentView>

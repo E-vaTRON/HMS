@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.AnnouncementsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Padding="10"
+    x:DataType="app:AnnouncementsPageViewModel"
+    Shell.BackgroundColor="#18f335">
+
+    <Shell.TitleView>
+        <Grid Padding="8,0,8,0">
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="28"
+                HorizontalOptions="Start"
+                Text="{x:Binding Title,
+                                 Mode=OneWay}"
+                TextColor="White"
+                VerticalOptions="Center" />
+
+            <toolkit:AvatarView
+                HorizontalOptions="End"
+                ImageSource="{x:Binding UserInfo.UserAvatar,
+                                        Mode=OneWay}"
+                Text="{x:Binding UserInfo.FirstName,
+                                 Mode=OneWay}">
+                <toolkit:AvatarView.Margin>
+                    <OnPlatform x:TypeArguments="Thickness">
+                        <On Platform="iOS" Value="0,0,8,4" />
+                        <On Platform="Android" Value="0,0,8,0" />
+                    </OnPlatform>
+                </toolkit:AvatarView.Margin>
+                <toolkit:AvatarView.HeightRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="40" />
+                        <On Platform="Android" Value="45" />
+                    </OnPlatform>
+                </toolkit:AvatarView.HeightRequest>
+                <toolkit:AvatarView.WidthRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="40" />
+                        <On Platform="Android" Value="45" />
+                    </OnPlatform>
+                </toolkit:AvatarView.WidthRequest>
+                <toolkit:AvatarView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding NavigateToProfileCommand}" />
+                </toolkit:AvatarView.GestureRecognizers>
+            </toolkit:AvatarView>
+        </Grid>
+    </Shell.TitleView>
+
+    <app:BasePage.Resources>
+
+        <x:Boolean x:Key="True">True</x:Boolean>
+
+        <DataTemplate x:Key="HomeItemTemplate" x:DataType="app:AnnouncementsPageItemModel">
+            <app:AnnouncementItemContentView AnnouncementTappedCommand="{Binding BindingContext.LaunchFileCommand, Source={RelativeSource AncestorType={x:Type app:AnnouncementsPage}}}" ComponentData="{x:Binding}" />
+        </DataTemplate>
+
+        <LinearItemsLayout
+            x:Key="HomeItemsLayout"
+            ItemSpacing="10"
+            Orientation="Vertical" />
+    </app:BasePage.Resources>
+
+
+    <RefreshView
+        Command="{x:Binding RefreshCommand}"
+        CommandParameter="{x:StaticResource True}"
+        IsRefreshing="{x:Binding IsBusy,
+                                 Mode=OneWay}">
+        <CollectionView
+            EmptyView="Looks like we don't have anything up"
+            ItemTemplate="{x:StaticResource HomeItemTemplate}"
+            ItemsLayout="{x:StaticResource HomeItemsLayout}"
+            ItemsSource="{x:Binding Items,
+                                    Mode=TwoWay}"
+            SelectedItem="{x:Binding SelectedItem,
+                                     Mode=TwoWay}"
+            SelectionChangedCommand="{x:Binding LaunchFileCommand}"
+            SelectionChangedCommandParameter="{x:Binding SelectedItem.FileUrl,
+                                                         Mode=OneWay}"
+            SelectionMode="Single" />
+    </RefreshView>
+</app:BasePage>

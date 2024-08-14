@@ -1,0 +1,142 @@
+﻿@implements IDialogContentComponent<RoomInfoDetailModel>
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@using System.Text.RegularExpressions
+
+<style>
+    /* Fix height and enable scrolling */
+    .grid {
+        overflow-y: auto;
+    }
+
+
+    /* Style the custom page links*/
+    .page-buttons {
+        margin: 1rem 0;
+        align-items: center;
+    }
+
+    .page-buttons button {
+        background: #d6d7d8;
+        color: black;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.4rem;
+        transition: transform 0.3s ease-out;
+        margin: 0.25rem;
+    }
+
+    .page-buttons button:active {
+        background: #a7c1ff !important;
+        color: white;
+        transform: scale(0.95) translateY(-0.15rem);
+        transition-duration: 0.05s;
+    }
+
+    .page-buttons button:hover:not(.current) {
+        background: #c0c9dc;
+    }
+
+    .page-buttons button.current {
+        background: #3771f4;
+        color: white;
+    }
+
+</style>
+
+<FluentDialogBody>
+    <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+        <FluentGridItem xs="12" sm="8">
+            <FluentCard>
+                @if (Content.Events is null && !Content.Events!.Any())
+                {
+                    <FluentProgressRing />
+                }
+                else
+                {
+                    <FluentDataGrid Items="@Content.Events!.AsQueryable()" Pagination="@pagination" ShowHover="true" ResizableColumns="true" TGridItem="RoomEventDialog">
+                        <SelectColumn TGridItem="RoomEventDialog"
+                                      SelectMode="DataGridSelectMode.Single"
+                                      @bind-SelectedItems="@SelectedItems" />
+                        <PropertyColumn Property="@(p => p.EventTitle)" Title="Service" />
+                        <PropertyColumn Property="@(p => p.StartDate)" Format="yyyy-MM-dd HH:mm" />
+                    </FluentDataGrid>
+
+                    <div class="page-buttons">
+                        Page:
+                        @if (pagination.TotalItemCount.HasValue)
+                        {
+                            for (var pageIndex = 0; pageIndex <= pagination.LastPageIndex; pageIndex++)
+                            {
+                                var capturedIndex = pageIndex;
+                                <FluentButton @onclick="@(() => GoToPageAsync(capturedIndex))"
+                                              Appearance="@PageButtonAppearance(capturedIndex)"
+                                              aria-current="@AriaCurrentValue(capturedIndex)"
+                                              aria-label="@AriaLabel(capturedIndex + 1)">
+                                    @(capturedIndex + 1)
+                                </FluentButton>
+                            }
+                        }
+                    </div>
+                }
+            </FluentCard>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="4">
+            <FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentCard>
+                    <FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                        Doctor:
+                        @foreach (var person in SelectedItems?.FirstOrDefault()?.Participants.Where(x => MasterDataConstants.DoctorIds.Contains(x.Id!)).ToList() ?? [])
+                        {
+                            <FluentCard Height="50">
+                                <FluentPersona Name="@person.UserName" Image="@person.ProfileImageUrl"
+                                               ImageSize="30px"></FluentPersona>
+                            </FluentCard>
+                        }
+                        <FluentDivider Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                       Style="width:100%; margin-top:2px; margin-bottom:2px;"></FluentDivider>
+                        Nurse:
+                        @foreach (var person in SelectedItems?.FirstOrDefault()?.Participants.Where(x => MasterDataConstants.NurseIds.Contains(x.Id!)) ?? [])
+                        {
+                            <FluentCard Height="50">
+                                <FluentPersona Name="@person.UserName" Image="@person.ProfileImageUrl"
+                                               ImageSize="30px"></FluentPersona>
+                            </FluentCard>
+                        }
+                    </FluentStack>
+                </FluentCard>
+            </FluentStack>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public RoomInfoDetailModel Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 7 };
+
+    IEnumerable<RoomEventDialog> SelectedItems = new List<RoomEventDialog>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        pagination.TotalItemCountChanged += (sender, eventArgs) => StateHasChanged();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task GoToPageAsync(int pageIndex)
+    {
+        await pagination.SetCurrentPageIndexAsync(pageIndex);
+    }
+    private Appearance PageButtonAppearance(int pageIndex)
+        => pagination.CurrentPageIndex == pageIndex ? Appearance.Accent : Appearance.Neutral;
+    private string? AriaCurrentValue(int pageIndex)
+        => pagination.CurrentPageIndex == pageIndex ? "page" : null;
+    private string AriaLabel(int pageIndex)
+        => $"Go to page {pageIndex}";
+
+}

@@ -1,0 +1,127 @@
+﻿@inject IServicesRepository servicesRepository;
+@implements IDialogContentComponent<ServiceModel>
+@namespace Blazor.Web
+@using System.Globalization;
+@using System.Text.RegularExpressions
+
+<FluentDialogBody>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+        <FluentBadge Fill="somevalue" BackgroundColor="@(GetBackgroundColor(Content.Color))" Color="white"> @Content.Name </FluentBadge>
+            <FluentTextField @bind-Value="@Content.Name" 
+                             Required 
+                             @onfocusout=ValidateAndSetIsServiceNameValid>
+                <FluentIcon Value="@(new Icons.Regular.Size16.ServiceBell())" Slot="start" Color="Color.Neutral" />Service name:
+            </FluentTextField>
+            @if (!Content.IsServiceNameValid)
+            {
+                <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">@(Content.IsNameNotDuplicated ?
+                    "Please provide a serivce name" :
+                    "Duplicated service name")
+            </FluentBadge>
+            }
+            <div>
+                <button @onclick="@(() => SetColor("#7F7F7F"))" style="background-color: #7F7F7F; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#A9A9A9"))" style="background-color: #A9A9A9; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#C0C0C0"))" style="background-color: #C0C0C0; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#B8860B"))" style="background-color: #B8860B; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#808000"))" style="background-color: #808000; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#2F4F4F"))" style="background-color: #2F4F4F; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#556B2F"))" style="background-color: #556B2F; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#d645ae"))" style="background-color: #d645ae; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#26ff8e"))" style="background-color: #26ff8e; width: 20px; height: 20px;"></button>
+                <button @onclick="@(() => SetColor("#ff0000"))" style="background-color: #ff0000; width: 20px; height: 20px;"></button>
+            </div>
+        <FluentTextField @bind-Value="@Content.Color"
+                         Required
+                         @onfocusout=ValidateAndSetIsColorValid>
+            <FluentIcon Value="@(new Icons.Regular.Size16.Color())" Slot="start" Color="Color.Neutral" />Color:
+        </FluentTextField>
+        @if (!IsHexColor(Content.Color))
+        {
+            <span style="color: #ff0000;">Invalid color format. Please use a valid HEX color.</span>
+        }
+        <FluentNumberField @bind-Value="@Content.Price" Min="1"
+                           Required
+                           @onfocusout=ValidateAndSetIsPriceValid>
+            <FluentIcon Value="@(new Icons.Regular.Size16.Money())" Slot="start" Color="Color.Neutral" />Price:
+        </FluentNumberField>
+        @if(!Content.IsPriceValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid price</FluentBadge>
+        }
+        <FluentRadioGroup Required="true" @bind-Value=Content.UICalculationType Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
+            <FluentRadio Value="@("monthlyorpenalty")">Monthly and penalty?</FluentRadio>
+            <FluentRadio Value="@("directadd")">Direct add</FluentRadio>
+        </FluentRadioGroup>
+        <FluentButton Appearance="Appearance.Accent" @onclick=ValidateService>Check service information</FluentButton>
+    </FluentStack>
+</FluentDialogBody>
+<FluentDialogFooter>
+
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public ServiceModel Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ValidateService();
+        await base.OnInitializedAsync();
+    }
+
+    private void SetColor(string color)
+    {
+        Content.Color = color;
+    }
+
+    private string GetBackgroundColor(string color)
+    {
+        return IsHexColor(color) ? color : "#627ade";
+    }
+
+    private bool IsHexColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            return false;
+
+        if (color[0] == '#')
+            color = color.Substring(1);
+
+        return color.Length == 6 && int.TryParse(color, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
+    }
+
+    void ValidateAndSetIsServiceNameValid()
+    {
+        string pattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        bool regexValid = Regex.IsMatch(Content.Name ?? "", pattern);
+        bool duplicateName = servicesRepository.FindAll(x => !x.IsDeleted).Any(s => s.Name == Content.Name);
+        if(regexValid && !duplicateName)
+            Content.IsServiceNameValid = true;
+        else
+        {
+            Content.IsServiceNameValid = false;
+            Content.IsNameNotDuplicated = !duplicateName;
+        }
+
+    }
+
+    void ValidateAndSetIsColorValid()
+        => Content.IsColorValid = IsHexColor(Content.Color);
+
+    void ValidateAndSetIsPriceValid()
+        => Content.IsPriceValid = Content.Price > 0;
+
+    void ValidateService(){
+        ValidateAndSetIsServiceNameValid();
+        ValidateAndSetIsColorValid();
+        ValidateAndSetIsPriceValid();
+
+        if(Content.IsServiceNameValid && Content.IsColorValid && Content.IsPriceValid)
+            Dialog?.TogglePrimaryActionButton(true);
+    }
+
+}

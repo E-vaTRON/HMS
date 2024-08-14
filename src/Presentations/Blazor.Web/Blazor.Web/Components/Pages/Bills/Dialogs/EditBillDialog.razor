@@ -1,0 +1,168 @@
+﻿@implements IDialogContentComponent<EditBillDialogParameter>
+@namespace Blazor.Web
+@inject IUsersRepository UsersRepository
+@inject IRequestRepository RequestRepository
+@using System.Globalization
+
+<FluentDialogBody>
+    <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+        <FluentGridItem xs="12" sm="6">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                @if (Content?.User is not null)
+                {
+                    <FluentCard>
+                        <FluentPersona Name="@(Content?.User.Email)"
+                                       Status="PresenceStatus.Available"
+                                       Image="@(Content?.User.ProfileImageUrl)"
+                                       StatusTitle="You are online"
+                                       ImageSize="35px" />
+                    </FluentCard>
+                }
+                <FluentCard>
+                    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal">
+                        <FluentLabel>
+                            Symptom:
+                        </FluentLabel>
+                        @if (@Content!.Request is not null)
+                        {
+                            var symptomIds = Content.Request.Symptoms.Split(',').ToList();
+                            @foreach (var symptom in @Content!.Symptoms.Where(x => symptomIds.Contains(x.Id)))
+                            {
+                                <FluentBadge Fill="somevalue" BackgroundColor="Gray" Color="white">
+                                    @symptom.Name
+                                </FluentBadge>
+                            }
+                        }
+                    </FluentStack>
+                </FluentCard>
+                <FluentCard>
+                    <FluentLabel>
+                        Current Drug In Bill:
+                    </FluentLabel>
+                    @if (!Content!.DrugInBills.Any())
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">
+                            No services were selected
+                        </FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                            @foreach (var drug in Content!.DrugInBills)
+                            {
+                                <FluentGrid Style="width:100%;">
+                                    <FluentGridItem xs="12" sm="8" Style="width:100%;">
+                                        @drug!.Description
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="12" sm="1" Style="width:100%;">
+                                        <FluentDivider Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical"
+                                                       Role="DividerRole.Presentation"
+                                                       Style="height: 100%;" />
+                                    </FluentGridItem>
+                                    <FluentGridItem xs="12" sm="3" Style="width:100%;">
+                                        @drug!.Quantity
+                                    </FluentGridItem>
+                                </FluentGrid>
+                            }
+                        </FluentStack>
+                    }
+                </FluentCard>
+            </FluentStack>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="6">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentAutocomplete Id="drugs"
+                                    @ref="Drugs"
+                                    TOption="Drug"
+                                    Items="@this.Content.Drugs"
+                                    Width="100%"
+                                    Placeholder="Search drugs"
+                                    MaximumSelectedOptions="6"
+                                    OptionText="@(item => item.Description)"
+                                    OptionStyle="min-height: 40px;"
+                                    ValueChanged="@OnSelectedDrugsChanged"
+                                    style="width: 100%;"
+                                    @bind-SelectedOptions="@Content.SelectedDrugs">
+
+                    <LabelTemplate>
+                        Select drugs <FluentIcon Value="@(new Icons.Regular.Size20.ClipboardBulletList())" />
+                    </LabelTemplate>
+
+                    @* Template used when the maximum number of selected items (MaximumSelectedOptions) has been reached *@
+                    <MaximumSelectedOptionsMessage>
+                        The maximum number of selected items has been reached.
+                    </MaximumSelectedOptionsMessage>
+
+                    @* Content display at the top of the Popup area *@
+                    <HeaderContent>
+                        <FluentLabel Color="Color.Accent"
+                                        Style="padding: 8px; font-size: 11px; border-bottom: 1px solid var(--neutral-fill-stealth-hover);">
+                            Suggested services
+                        </FluentLabel>
+                    </HeaderContent>
+
+                    @* Content display at the bottom of the Popup area *@
+                    <FooterContent>
+                        @if (!Content.SelectedDrugs.Any())
+                        {
+                            <FluentLabel Style="font-size: 11px; text-align: center; width: 200px;">
+                                No services found
+                            </FluentLabel>
+                        }
+                    </FooterContent>
+                </FluentAutocomplete>
+                @if (Content.SelectedDrugs.Any())
+                {
+                    <ul>
+                        @foreach (var selectedDrug in Content.SelectedDrugs)
+                        {
+                            <li>
+                                @selectedDrug.Description
+                                <FluentNumberField @bind-Value="@selectedDrug.Quantity"
+                                                    Min="1" Max="100" Label="Quantity" />
+                            </li>
+                        }
+                    </ul>
+
+                }
+                else
+                {
+                    <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">
+                        No selected drug with quantity
+                    </FluentBadge>
+                }
+            </FluentStack>
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+<FluentDialogFooter>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public EditBillDialogParameter Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private DateTime? selectedDate = DateTime.Now;
+
+    public FluentAutocomplete<Drug> Drugs { get; set; } = default!;
+
+    bool isLoading = false;
+    string userGuid = string.Empty;
+    string requestGuid = string.Empty;
+    string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Content.Deadline = DateTime.Now;
+        await base.OnInitializedAsync();
+    }
+
+    void OnSelectedDrugsChanged()
+    {
+        Dialog!.TogglePrimaryActionButton(true);
+    }
+
+}

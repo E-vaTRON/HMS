@@ -1,0 +1,52 @@
+@implements IDialogContentComponent<ConvertRequestToBillModel>
+@namespace Blazor.Web
+@inject IUsersRepository UsersRepository
+@using System.Globalization
+
+<FluentDialogBody>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="10">
+        <FluentDatePicker Label="Deadline" 
+                          DisabledDateFunc="ValidateSelectDate" 
+                          @bind-Value="@Content.Deadline" />
+        @if (!Content.IsDeadlineValid)
+        {
+            <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">
+                Please provide a deadline for this bill
+            </FluentBadge>
+        }
+        <FluentButton Appearance="Appearance.Accent" @onclick=ValidateBill>
+            Validate bill
+        </FluentButton>
+    </FluentStack>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public ConvertRequestToBillModel Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    void ValidateBill()
+    {
+        ValidateDeadline();
+
+        if (Content.IsDeadlineValid )
+            Dialog!.TogglePrimaryActionButton(true);
+    }
+
+    void ValidateDeadline()
+    {
+        if (Content.Deadline is not null)
+            Content!.IsDeadlineValid = true;
+    }
+
+    bool ValidateSelectDate(DateTime date)
+    {
+        if (date.AddDays(1) < DateTime.UtcNow)
+        {
+            return true;
+        }
+        return false;
+    }
+}

@@ -1,0 +1,277 @@
+﻿@implements IDialogContentComponent<AdminWithAvatarFile>
+@namespace Blazor.Web
+@using System.Text.RegularExpressions
+
+<FluentDialogBody>
+    <FluentGrid Spacing="3" Justify="@Justification">
+        <FluentGridItem xs="12" sm="6">
+            
+        <div style="max-height: 400px; overflow-y: auto;">
+            <FluentCard Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                    <FluentTextField @bind-Value="@Content.FirstName" 
+                                     xs="12" Required
+                                     @onfocusout=@(() => ValidateAndSetIsFirstNameValid())>First Name:</FluentTextField>
+                    @if (!Content.IsFirstNameValid)
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid first name</FluentBadge>
+                    }
+                    <FluentTextField @bind-Value="@Content.MiddleName" xs="12" 
+                                     @onfocusout=@(() => ValidateAndSetIsMiddleNameValid())>Middle Name:</FluentTextField>
+                    @if (!Content.IsMiddleNameValid)
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid middle name</FluentBadge>
+                    }
+                    <FluentTextField @bind-Value="@Content.LastName" xs="12" Required
+                                     @onfocusout=@(() => ValidateAndSetIsLastNameValid())>Last Name:</FluentTextField>
+                    @if (!Content.IsLastNameValid)
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid last name</FluentBadge>
+                    }
+                    <FluentTextField @bind-Value="@Content.UserName" xs="12">User Name:</FluentTextField>
+                    <FluentTextField @bind-Value="@Content.FormPassword" 
+                                     TextFieldType="TextFieldType.Password" 
+                                     xs="12"><FluentIcon Value="@(new Icons.Regular.Size16.Password())" Slot="start" Color="Color.Neutral" />Password:
+                    </FluentTextField>
+                    <FluentDatePicker Label="Join Date" Value="@SelectedDate" ValueChanged="@((DateTime? newDate) => HandleDateChange(newDate))" />
+                    <FluentTextField @bind-Value="@Content.Email" Required TextFieldType="TextFieldType.Email"
+                                     @onfocusout=@(() => ValidateAndSetIsEmailValid())>
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Mail())" Slot="start" Color="Color.Neutral" />Email:
+                    </FluentTextField>
+                    @if (!Content.IsEmailValid)
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a valid email</FluentBadge>
+                    }
+                    <FluentTextField @bind-Value="@Content.PhoneNumber" Required TextFieldType="TextFieldType.Tel"
+                                     @onfocusout=@(() => ValidateAndSetIsPhoneNumberValid())>
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Phone())" Slot="start" Color="Color.Neutral" />Phone number:
+                    </FluentTextField>
+                    @if (!Content.IsPhoneNumberValid)
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="red" Color="white">Please provide a phone number</FluentBadge>
+                    }
+                    <FluentButton Appearance="Appearance.Accent" @onclick=ValidateAccount>Check account information</FluentButton>
+                </FluentCard>
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="6">
+            
+        <div style="max-height: 400px; overflow-y: auto;">
+            <FluentInputFile Id="my-file-uploader"
+                             Mode="InputFileMode.SaveToTemporaryFolder"
+                             Multiple="false"
+                             ShowPreview="true"
+                             MaximumFileCount="1"
+                             MaximumFileSize="50000000"
+                             Accept="image/*"
+                             OnCompleted="@OnCompleted"
+                             OnFileError="@OnError"
+                             Style="height: 300px;"
+                             Class="demopanel">
+
+                <label for="my-file-uploader">
+                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                </label>
+
+                <div>
+                    Drag file here you wish to upload,
+                    or <label for="my-file-uploader">browse</label>
+                    for them<span style="color: red;">*</span>.
+                    <br />
+                </div>
+
+            </FluentInputFile>
+
+            @if (Files.Any())
+            {
+                <h4>File(s) uploaded:</h4>
+                <ul>
+                    @foreach (var file in Files)
+                    {
+                        <li>
+                            <b>@file.Name</b> 🔹
+                            @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                            @file.ContentType 🔹
+                            @file.LocalFile?.FullName
+                            @file.ErrorMessage
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if(!string.IsNullOrEmpty(UploadError))
+            {
+                <h4>Upload error:</h4>
+                <p style="color: red">@UploadError</p>
+            }
+            </div>
+
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+<FluentDialogFooter>
+</FluentDialogFooter>
+
+@code {
+
+    [Parameter]
+    public AdminWithAvatarFile Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    string UploadError = string.Empty;
+
+    private DateTime? SelectedDate = DateTime.Today;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        var file = files.FirstOrDefault();
+        if (file == null)
+        {
+            // No file was uploaded
+            UploadError = "No file was uploaded.";
+            return;
+        }
+        else if (!file.ContentType.StartsWith("image/"))
+        {
+            // The uploaded file is not an image
+            UploadError = "The uploaded file is not an image.";
+            return;
+        }
+
+        Files = files.ToArray();
+
+        Content.AvatarFiles = Files
+            .Where(file => file.LocalFile != null || file.Buffer != null || file.Stream != null)
+            .Select(file =>
+            {
+                IFormFile formFile;
+
+                if (file.LocalFile != null)
+                {
+                    // Create an instance of FormFile using LocalFile
+                    formFile = new FormFile(
+                        file.LocalFile.OpenRead(),
+                        0,
+                        file.LocalFile.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Buffer != null)
+                {
+                    // Create an instance of FormFile using Buffer
+                    formFile = new FormFile(
+                        new MemoryStream(file.Buffer.Data),
+                        0,
+                        file.Buffer.Data.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else if (file.Stream != null)
+                {
+                    // Create an instance of FormFile using Stream
+                    formFile = new FormFile(
+                        file.Stream,
+                        0,
+                        file.Stream.Length,
+                        file.Name, // Set the actual file name
+                        file.Name)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = file.ContentType // Set the correct content type
+                        };
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported upload mode");
+                }
+
+                return formFile;
+            })
+            .ToArray();
+
+        
+        UploadError = string.Empty;
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+        // The error message will be in the file.ErrorMessage property
+        UploadError = file.ErrorMessage;
+    }
+
+    private void HandleDateChange(DateTime? newDate)
+    {
+        if (!newDate.HasValue)
+            return;
+            
+        SelectedDate = newDate.Value;
+        Content.CreatedAt = newDate.Value;
+    }
+
+        private void ValidateAndSetIsFirstNameValid()
+    {
+        // Use regex pattern for first name validation
+        string firstNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        Content.IsFirstNameValid = Regex.IsMatch(Content.FirstName ?? "", firstNamePattern);
+    }
+
+    private void ValidateAndSetIsMiddleNameValid()
+    {
+        // Use regex pattern for first name validation
+        string firstNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        Content.IsMiddleNameValid = Regex.IsMatch(Content.MiddleName ?? "", firstNamePattern);
+    }
+
+    private void ValidateAndSetIsLastNameValid()
+    {
+        // Use regex pattern for last name validation
+        string lastNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        Content.IsLastNameValid = Regex.IsMatch(Content.LastName ?? "", lastNamePattern);
+    }
+
+    private void ValidateAndSetIsPhoneNumberValid()
+    {
+        // Use regex pattern for phone number validation
+        string phonePattern = @"^\+?\d{1,4}?\s?\d{6,}$";
+        Content.IsPhoneNumberValid = Regex.IsMatch(Content.PhoneNumber ?? "", phonePattern);
+    }
+
+    private void ValidateAndSetIsEmailValid()
+    {
+        // Use regex pattern for email validation
+        string emailPattern = @"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$";
+        Content.IsEmailValid = Regex.IsMatch(Content.Email ?? "", emailPattern);
+    }
+
+    private void ValidateAccount()
+    {
+        ValidateAndSetIsFirstNameValid();
+        ValidateAndSetIsLastNameValid();
+        ValidateAndSetIsPhoneNumberValid();
+        ValidateAndSetIsEmailValid();
+
+        if (!string.IsNullOrEmpty(Content.MiddleName) || !string.IsNullOrWhiteSpace(Content.MiddleName))
+            ValidateAndSetIsMiddleNameValid();
+        else Content.IsMiddleNameValid = true;
+
+        if(Content.IsFirstNameValid
+            && Content.IsMiddleNameValid
+            && Content.IsLastNameValid 
+            && Content.IsPhoneNumberValid 
+            && Content.IsEmailValid)
+            Dialog!.TogglePrimaryActionButton(true);
+    }
+}

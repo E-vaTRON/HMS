@@ -1,0 +1,163 @@
+﻿@implements IDialogContentComponent<MemberWithPayment>
+@namespace Blazor.Web
+
+<FluentDialogBody>
+    <FluentGrid Spacing="3" Justify="@Justification">
+        <FluentGridItem xs="12" sm="6">
+            
+        <div style="max-height: 400px; overflow-y: auto;">
+            <FluentCard Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentTextField @bind-Value="@Content.FirstName" xs="12" Disabled>First Name:</FluentTextField>
+                <FluentTextField @bind-Value="@Content.MiddleName" xs="12" Disabled>Middle Name:</FluentTextField>
+                <FluentTextField @bind-Value="@Content.LastName" xs="12" Disabled>Last Name:</FluentTextField>
+                <FluentTextField @bind-Value="@Content.UserName" xs="12">User Name:</FluentTextField>
+                <FluentNumberField @bind-Value="@Content.Lot" Min="0" Disabled>Lot:</FluentNumberField>
+                <FluentNumberField @bind-Value="@Content.LotSize" Min="0" Disabled>Lot Size:</FluentNumberField>
+                <FluentNumberField @bind-Value="@Content.Phase" Min="0" Disabled>Phase:</FluentNumberField>
+                <FluentDatePicker Label="Join Date" Value="@SelectedDate" ValueChanged="@((DateTime? newDate) => HandleDateChange(newDate))" Disabled/>
+                <FluentNumberField @bind-Value="@Content.Block" Min="0" Disabled>
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Building())" Slot="start" Color="Color.Neutral" />Block:
+                </FluentNumberField>
+                    <FluentTextField @bind-Value="@Content.Email" TextFieldType="TextFieldType.Email">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Mail())" Slot="start" Color="Color.Neutral" />Email:
+                </FluentTextField>
+                <FluentTextField @bind-Value="@Content.Street" xs="12" Disabled>
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Location())" Slot="start" Color="Color.Neutral" />Street:
+                </FluentTextField>
+                    <FluentTextField @bind-Value="@Content.PhoneNumber" TextFieldType="TextFieldType.Tel">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Phone())" Slot="start" Color="Color.Neutral" />Phone number:
+                    </FluentTextField>
+                </FluentCard>
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="6">
+
+            <FluentInputFile Id="my-file-uploader"
+                             Mode="InputFileMode.SaveToTemporaryFolder"
+                             Multiple="false"
+                             Disabled
+                             ShowPreview="true"
+                             MaximumFileCount="1"
+                             MaximumFileSize="50000000"
+                             Accept="image/*"
+                             OnCompleted="@OnCompleted"
+                             OnFileError="@OnError"
+                             Style="height: 300px;"
+                             Class="demopanel">
+
+                <label for="my-file-uploader">
+                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                </label>
+
+                <div>
+                    Drag file here you wish to upload,
+                    or <label for="my-file-uploader">browse</label>
+                    for them<span style="color: red;">*</span>.
+                    <br />
+                </div>
+            </FluentInputFile>
+
+            @if (Files.Any())
+            {
+                <h4>File(s) uploaded:</h4>
+                <ul>
+                    @foreach (var file in Files)
+                    {
+                        <li>
+                            <b>@file.Name</b> 🔹
+                            @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                            @file.ContentType 🔹
+                            @file.LocalFile?.FullName
+                            @file.ErrorMessage
+                        </li>
+                    }
+                </ul>
+            }
+        </FluentGridItem>
+    </FluentGrid>
+</FluentDialogBody>
+
+@code {
+
+    [Parameter]
+    public MemberWithPayment Content { get; set; } = default!;
+
+    private DateTime? SelectedDate = DateTime.Today;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        Files = files.ToArray();
+
+        // Content.AvatarFiles = Files
+        //     .Where(file => file.LocalFile != null || file.Buffer != null || file.Stream != null)
+        //     .Select(file =>
+        //     {
+        //         IFormFile formFile;
+
+        //         if (file.LocalFile != null)
+        //         {
+        //             // Create an instance of FormFile using LocalFile
+        //             formFile = new FormFile(
+        //                 file.LocalFile.OpenRead(),
+        //                 0,
+        //                 file.LocalFile.Length,
+        //                 file.Name, // Set the actual file name
+        //                 file.Name)
+        //                 {
+        //                     Headers = new HeaderDictionary(),
+        //                     ContentType = file.ContentType // Set the correct content type
+        //                 };
+        //         }
+        //         else if (file.Buffer != null)
+        //         {
+        //             // Create an instance of FormFile using Buffer
+        //             formFile = new FormFile(
+        //                 new MemoryStream(file.Buffer.Data),
+        //                 0,
+        //                 file.Buffer.Data.Length,
+        //                 file.Name, // Set the actual file name
+        //                 file.Name)
+        //                 {
+        //                     Headers = new HeaderDictionary(),
+        //                     ContentType = file.ContentType // Set the correct content type
+        //                 };
+        //         }
+        //         else if (file.Stream != null)
+        //         {
+        //             // Create an instance of FormFile using Stream
+        //             formFile = new FormFile(
+        //                 file.Stream,
+        //                 0,
+        //                 file.Stream.Length,
+        //                 file.Name, // Set the actual file name
+        //                 file.Name)
+        //                 {
+        //                     Headers = new HeaderDictionary(),
+        //                     ContentType = file.ContentType // Set the correct content type
+        //                 };
+        //         }
+        //         else
+        //         {
+        //             throw new InvalidOperationException("Unsupported upload mode");
+        //         }
+
+        //         return formFile;
+        //     })
+        //     .ToArray();
+    }
+
+    void OnError(FluentInputFileEventArgs file){}
+
+    private void HandleDateChange(DateTime? newDate)
+    {
+        if (!newDate.HasValue)
+            return;
+            
+        SelectedDate = newDate.Value;
+        Content.CreatedAt = newDate.Value;
+    }
+}

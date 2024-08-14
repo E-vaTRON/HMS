@@ -1,0 +1,261 @@
+﻿@implements IDialogContentComponent<UploadMembersExcelFileModel>
+@namespace Blazor.Web
+@using System.Text.RegularExpressions
+@using System.Globalization
+
+@inject IExcelService excelService;
+@inject IUsersRepository userRepository;
+<FluentDialogBody>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <FluentInputFile Id="my-file-uploader"
+                         Mode="InputFileMode.SaveToTemporaryFolder"
+                         Multiple="false"
+                         ShowPreview="true"
+                         MaximumFileCount="1"
+                         MaximumFileSize="50000000"
+                         Accept=".xls,.xlsx"
+                         OnCompleted="@OnCompleted"
+                         OnFileError="@OnError"
+                         Style="height: 300px;"
+                         Class="demopanel">
+
+            <label for="my-file-uploader">
+                <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+            </label>
+
+            <div>
+                Drag file here you wish to upload,
+                or <label for="my-file-uploader">browse</label>
+                for them<span style="color: red;">*</span>.
+                <br />
+            </div>
+
+        </FluentInputFile>
+        @if (Files.Any())
+        {
+            <h4>File(s) uploaded:</h4>
+            <ul>
+                @foreach (var file in Files)
+                {
+                    <li>
+                        <b>@file.Name</b> 🔹
+                        @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                        @file.ContentType 🔹
+                        @file.LocalFile?.FullName
+                        @file.ErrorMessage
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (!string.IsNullOrEmpty(UploadError))
+        {
+            <h4>Upload error:</h4>
+            <p style="color: red">@UploadError</p>
+        }
+    </div>
+</FluentDialogBody>
+<FluentDialogFooter>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public UploadMembersExcelFileModel Content { get; set; } = default!;
+
+    string UploadError = string.Empty;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    async Task OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        UploadError = string.Empty;
+        var currentUsers = userRepository.FindAll().ToList();
+
+        var file = files.FirstOrDefault();
+        if (file == null)
+        {
+            // No file was uploaded
+            UploadError = "No file was uploaded.";
+            return;
+        }
+        else if (!file.ContentType.Equals("application/vnd.ms-excel") && !file.ContentType.Equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+        {
+            // The uploaded file is not an image
+            UploadError = "The uploaded file is not an excel file.";
+            return;
+        }
+
+        IFormFile formFile;
+
+        if (file.LocalFile != null)
+        {
+            // Create an instance of FormFile using LocalFile
+            formFile = new FormFile(
+                file.LocalFile.OpenRead(),
+                0,
+                file.LocalFile.Length,
+                Path.GetFileNameWithoutExtension(file.Name), // Set the actual file name
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else if (file.Buffer != null)
+        {
+            // Create an instance of FormFile using Buffer
+            formFile = new FormFile(
+                new MemoryStream(file.Buffer.Data),
+                0,
+                file.Buffer.Data.Length,
+                Path.GetFileNameWithoutExtension(file.Name),
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else if (file.Stream != null)
+        {
+            // Create an instance of FormFile using Stream
+            formFile = new FormFile(
+                file.Stream,
+                0,
+                file.Stream.Length,
+                Path.GetFileNameWithoutExtension(file.Name),
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported upload mode");
+        }
+
+        if (formFile is null)
+        {
+            return;
+        }
+
+        Content.AttachedFile = formFile;
+
+        var dataTable = await excelService.GetDataTableAsync(Content.AttachedFile);
+        var datas = new List<MemberWithValidation>();
+        var rows = dataTable?.Rows;
+        for (int i = 0; i < rows?.Count; i++)
+        {
+            var row = rows[i];
+            var drug = new AddDrugModel();
+            string[] formats =
+            {
+                "yyyy-MM-dd",
+                "M/d/yyyy",
+                "dd/MM/yy",
+                "M/dd/yyyy HH:mm:ss tt",
+                "MM/dd/yyyy HH:mm:ss",
+                "dd-MMM-yyyy",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+            };
+            var username = row["User Name"]?.ToString();
+            var email = row["Email"]?.ToString();
+
+            if (currentUsers.Any(x => x.UserName == username))
+            {
+                UploadError = $"Data in file is invalid, Duplicate Username At row: {i + 2}";
+                break;
+            }
+
+            if (currentUsers.Any(x => x.Email == email))
+            {
+                UploadError = $"Data in file is invalid, Duplicate Email At row: {i + 2}";
+                break;
+            }
+
+            var userNameValid = this.ValidateAndSetIsUsernameValid(row["User Name"]?.ToString());
+            var firstNameValid = this.ValidateAndSetIsFirstNameValid(row["First Name"]?.ToString());
+            var middleNameValid = this.ValidateAndSetIsMiddleNameValid(row["Middle Name"]?.ToString());
+            var lastNameValid = this.ValidateAndSetIsLastNameValid(row["Last Name"]?.ToString());
+            var emailValid = this.ValidateAndSetIsEmailValid(row["Email"]?.ToString());
+            var phoneNumberValid = this.ValidateAndSetIsPhoneNumberValid(row["Phone number"]?.ToString());
+            var canParseDate = DateTime.TryParseExact(row["Join Date"]?.ToString(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var createdAt);
+            var canParsePhase = int.TryParse(row["Phase"]?.ToString(), out var phase);
+            var canParseBlock = int.TryParse(row["Block"]?.ToString(), out var block);
+            var canParseLot = int.TryParse(row["Lot"]?.ToString(), out var lot);
+            var canParseLotSize = int.TryParse(row["Lot Size"]?.ToString(), out var lotSize);
+            var street = row["Street"]?.ToString();
+            if (!firstNameValid || !middleNameValid || !lastNameValid || !emailValid || !phoneNumberValid || !canParseBlock || !canParseLot || !canParseLotSize || !canParsePhase || !canParseDate)
+            {
+                UploadError = $"Data in file is invalid, At row: {i + 2}";
+                break;
+            }
+
+            datas.Add(new MemberWithValidation
+                {
+                    UserName = username,
+                    Email = email,
+                    FirstName = row["First Name"]?.ToString()!,
+                    MiddleName = row["Middle Name"]?.ToString(),
+                    LastName = row["Last Name"]?.ToString()!,
+                    PhoneNumber = row["Phone number"]?.ToString(),
+                    CreatedAt = createdAt,
+                    Phase = phase,
+                    Block = block,
+                    Lot = lot,
+                    LotSize = lotSize,
+                    Street = street
+                });
+        }
+        Content.Users = datas;
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+    }
+
+    private bool ValidateAndSetIsFirstNameValid(string? value)
+    {
+        // Use regex pattern for first name validation
+        string firstNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        return Regex.IsMatch(value ?? "", firstNamePattern);
+    }
+
+    bool ValidateAndSetIsUsernameValid(string? value)
+    {
+        string pattern = @"^[-_a-zA-Z0-9]+(\.[-_a-zA-Z0-9]+)*$";
+        return Regex.IsMatch(value ?? "", pattern);
+    }
+
+    bool ValidateAndSetIsMiddleNameValid(string? value)
+    {
+        // Use regex pattern for first name validation
+        string firstNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        return Regex.IsMatch(value ?? "", firstNamePattern);
+    }
+
+    bool ValidateAndSetIsLastNameValid(string? value)
+    {
+        // Use regex pattern for last name validation
+        string lastNamePattern = @"^[A-Za-z]+(?:\s+[A-Za-z]+)*$";
+        return Regex.IsMatch(value ?? "", lastNamePattern);
+    }
+
+    bool ValidateAndSetIsPhoneNumberValid(string? value)
+    {
+        // Use regex pattern for phone number validation
+        string phonePattern = @"^\+?\d{1,4}?\s?\d{6,}$";
+        return Regex.IsMatch(value ?? "", phonePattern);
+    }
+
+    bool ValidateAndSetIsEmailValid(string? value)
+    {
+        // Use regex pattern for email validation
+        string emailPattern = @"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$";
+        return Regex.IsMatch(value ?? "", emailPattern);
+    }
+}

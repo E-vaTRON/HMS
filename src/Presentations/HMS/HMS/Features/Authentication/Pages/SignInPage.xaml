@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.SignInPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:alohakit="clr-namespace:AlohaKit.Animations;assembly=AlohaKit.Animations"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Title="SignInPage"
+    Padding="20"
+    x:DataType="app:SignInPageViewModel"
+    BackgroundColor="#54d49d"
+    Shell.NavBarIsVisible="False">
+
+    <app:BasePage.Resources>
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+
+        <alohakit:JumpAnimation
+            x:Key="JumpAnimation"
+            Target="{x:Reference LoginButton}"
+            Duration="500" />
+        <alohakit:BounceInAnimation
+            x:Key="BounceInAnimation"
+            Target="{x:Reference LoginButton}"
+            Duration="500" />
+    </app:BasePage.Resources>
+
+    <Grid>
+        <ScrollView VerticalOptions="Center" VerticalScrollBarVisibility="Never">
+            <StackLayout Spacing="0">
+                <!--<Image
+                    Margin="{app:EdgeInsets Top=0,
+                                            Bottom={x:Static app:Dimensions.SpacingMd}}"
+                    HeightRequest="88"
+                    HorizontalOptions="Center"
+                    SemanticProperties.Description="HMS"
+                    Source="lbalogo.png" />-->
+                <Frame HorizontalOptions="Center">
+                    <VerticalStackLayout Spacing="8">
+                        <Label
+                            Margin="{app:EdgeInsets Vertical={x:Static app:Dimensions.SpacingLg}}"
+                            FontAttributes="Bold"
+                            FontFamily="{x:Static app:FontNames.Paulle1V}"
+                            FontSize="Title"
+                            HorizontalTextAlignment="Center"
+                            Text="SIGN IN"
+                            TextColor="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                                        Dark={x:Static app:AppColors.White}}" />
+                        <app:RoundedEntry
+                            x:Name="EmailEntry"
+                            Margin="{app:EdgeInsets Horizontal={x:Static app:Dimensions.SpacingLg},
+                                                    Bottom={x:Static app:Dimensions.SpacingSm}}"
+                            IsValid="{Binding Form.EmailErrors, Converter={x:Static app:ApplicationConverters.IsListNullOrEmpty}}"
+                            Placeholder="Enter email"
+                            PrefixIcon="{x:StaticResource Mail24IconRegular}"
+                            Text="{Binding Form.Email}"
+                            WidthRequest="370" />
+                        <app:RoundedEntry
+                            x:Name="PasswordEntry"
+                            Margin="{app:EdgeInsets Horizontal={x:Static app:Dimensions.SpacingLg}}"
+                            IsPassword="True"
+                            IsValid="{Binding Form.PasswordErrors, Converter={x:Static app:ApplicationConverters.IsListNullOrEmpty}}"
+                            Placeholder="Enter password"
+                            PrefixIcon="{x:StaticResource Password24IconRegular}"
+                            Text="{Binding Form.Password}"
+                            WidthRequest="370" />
+
+                        <ActivityIndicator IsRunning="{x:Binding IsBusy, Mode=OneWay}" IsVisible="{x:Binding IsBusy, Mode=OneWay}" />
+
+                        <Button
+                            x:Name="LoginButton"
+                            Margin="{app:EdgeInsets Vertical={x:Static app:Dimensions.SpacingLg}}"
+                            BackgroundColor="#37f16f"
+                            Clicked="LoginButton_Clicked"
+                            Command="{x:Binding SignInCommand}"
+                            FontFamily="{x:Static app:FontNames.Paulle1V}"
+                            FontSize="24"
+                            HorizontalOptions="Center"
+                            MinimumWidthRequest="210"
+                            Text="Sign in"
+                            TextColor="{AppThemeBinding Light={x:Static app:AppColors.Black},
+                                                        Dark={x:Static app:AppColors.White}}">
+                            <Button.Triggers>
+                                <EventTrigger Event="Clicked">
+                                    <alohakit:BeginAnimation Animation="{StaticResource BounceInAnimation}" />
+                                </EventTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <!--<Label
+                            HorizontalOptions="Center"
+                            Text="Forgot password?"
+                            TextColor="{x:Static app:AppColors.LightBlue}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>-->
+
+                        <Label
+                            Padding="{app:EdgeInsets Horizontal={x:Static app:Dimensions.SpacingMd}}"
+                            HorizontalTextAlignment="Center"
+                            IsVisible="{x:Binding Form.HasErrors,
+                                                  Mode=OneWay}"
+                            MaximumWidthRequest="300"
+                            TextColor="{x:Static app:AppColors.Red}">
+                            <Label.Opacity>
+                                <MultiBinding Converter="{Static app:ApplicationConverters.AnyFalseToOpacity}">
+                                    <Binding Converter="{x:Static app:ApplicationConverters.IsListNullOrEmpty}" Path="Form.EmailErrors" />
+                                    <Binding Converter="{x:Static app:ApplicationConverters.IsListNullOrEmpty}" Path="Form.PasswordErrors" />
+                                </MultiBinding>
+                            </Label.Opacity>
+                            <Label.Text>
+                                <MultiBinding Converter="{Static app:ApplicationConverters.FirstItem}">
+                                    <Binding Converter="{x:Static app:ApplicationConverters.FirstItem}" Path="Form.EmailErrors" />
+                                    <Binding Converter="{x:Static app:ApplicationConverters.FirstItem}" Path="Form.PasswordErrors" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </VerticalStackLayout>
+                </Frame>
+
+
+                <HorizontalStackLayout
+                    Margin="{app:EdgeInsets Vertical={x:Static app:Dimensions.SpacingMd}}"
+                    HorizontalOptions="Center"
+                    Spacing="{x:Static app:Dimensions.SpacingXl}">
+                    <HorizontalStackLayout.Resources>
+                        <ResourceDictionary>
+                            <Style x:Key="SocialAccountButton" TargetType="ImageButton">
+                                <Setter Property="MaximumHeightRequest" Value="{x:Static app:Dimensions.ButtonHeight}" />
+                                <Setter Property="MinimumHeightRequest" Value="{x:Static app:Dimensions.ButtonHeight}" />
+                                <Setter Property="MaximumWidthRequest" Value="{x:Static app:Dimensions.ButtonHeight}" />
+                                <Setter Property="MinimumWidthRequest" Value="{x:Static app:Dimensions.ButtonHeight}" />
+                            </Style>
+                        </ResourceDictionary>
+                    </HorizontalStackLayout.Resources>
+                </HorizontalStackLayout>
+
+                <Label
+                    Margin="{app:EdgeInsets Vertical={x:Static app:Dimensions.SpacingMd}}"
+                    FontFamily="{x:Static app:FontNames.Paulle1V}"
+                    FontSize="18"
+                    HorizontalTextAlignment="Center"
+                    TextColor="{x:Static app:AppColors.Grey40}"
+                    VerticalOptions="EndAndExpand">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span FontFamily="{x:Static app:FontNames.Paulle1V}" Text="No account? " />
+                            <Span
+                                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                                Text="Contact to the admin."
+                                TextColor="{x:Static app:AppColors.LightBlue}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <!--<Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SignUpCommand}" />
+                    </Label.GestureRecognizers>-->
+                </Label>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
+</app:BasePage>

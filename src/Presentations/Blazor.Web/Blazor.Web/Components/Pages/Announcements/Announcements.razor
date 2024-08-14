@@ -1,0 +1,67 @@
+﻿@page "/announcements"
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Announcements</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())" Appearance="Appearance.Accent" OnClick="async () => await AddAnnouncementDialog()">Add announcement</FluentButton>
+        </FluentToolbar>
+    </FluentCard>
+
+    @if (Items is null)
+    {
+        <FluentProgressRing/>        
+    }
+    else
+    {
+        <FluentCard>
+            <FluentDataGrid Id="annoucementsgrid" Items=@Items GridTemplateColumns="1fr 4fr 1fr 1fr 2fr" TGridItem=AnnouncementModel>
+@*                 <TemplateColumn Title="ID" Align=Align.Start>
+                    <FluentStack>
+                        <FluentButton Appearance="Appearance.Outline" 
+                                      OnClick="@(async () => await CopyToClipboard(context.Id.ToString()))">
+                                        @context.Id
+                        </FluentButton>
+                    </FluentStack>
+                </TemplateColumn> *@
+                <PropertyColumn Title="Title" Property="@(c => c.Title)" Sortable="true" Class="multiline-text" />
+                <PropertyColumn Title="Description" Property="@(c => c.Content)" Sortable="true" Class="multiline-text" />
+                <PropertyColumn Title="Date" Property="@(c => c.CreatedDate.ToString("dd/MM/yy"))"/>
+                <TemplateColumn Title="Attachments" Align=Align.Start>
+                    @if(context.FileUrl is null){
+                        <FluentLabel>No file was uploaded</FluentLabel>
+                    }
+                    else{
+                        <FluentAnchor Href="@context.FileUrl" Appearance="Appearance.Hypertext">Download file</FluentAnchor>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Actions" Align=Align.Center>
+                    <FluentStack>
+                        @* <FluentButton IconStart="@(new Icons.Regular.Size24.Edit())" Disabled Appearance="Appearance.Outline" @onclick="() => {}" /> *@
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick=@(async () => await Delete(context)) />
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+            <br/>
+            <div>
+                <FluentStack HorizontalGap="5">
+                    @for (int i = 1; i <= PaginationCount; i++)
+                    {
+                        int currentPage = i;
+                        <FluentButton Appearance="PageButtonAppearance(currentPage)" @onclick="@( async () => {
+                            await RefreshAsync(currentPage);
+                            CurrentPage = currentPage;
+                        })">@currentPage</FluentButton>
+                    }
+                </FluentStack>
+            </div>
+        </FluentCard>
+    }
+</FluentStack>

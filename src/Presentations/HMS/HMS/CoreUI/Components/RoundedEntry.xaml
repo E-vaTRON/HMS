@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="HMS.RoundedEntry"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    x:Name="root">
+    <Frame
+        x:Name="border"
+        Padding="{app:EdgeInsets Horizontal={x:Static app:Dimensions.SpacingMd}}"
+        CornerRadius="5"
+        HorizontalOptions="Center"
+        MaximumHeightRequest="{x:Static app:Dimensions.EntryHeight}"
+        MinimumHeightRequest="{x:Static app:Dimensions.EntryHeight}">
+        <HorizontalStackLayout Spacing="0">
+            <ImageButton
+                Margin="{app:EdgeInsets Vertical={x:Static app:Dimensions.SpacingMd}}"
+                HeightRequest="28"
+                Source="{Binding PrefixIcon, Source={x:Reference root}}"
+                WidthRequest="28" />
+            <Entry
+                x:Name="EntryComponent"
+                Margin="{app:EdgeInsets Left={x:Static app:Dimensions.SpacingSm}}"
+                Focused="Entry_Focused"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="18"
+                HorizontalOptions="FillAndExpand"
+                IsPassword="{Binding IsPassword, Source={x:Reference root}}"
+                Keyboard="{Binding Keyboard, Source={x:Reference root}}"
+                MinimumWidthRequest="200"
+                Placeholder="{Binding Placeholder, Source={x:Reference root}}"
+                PlaceholderColor="#1d2939"
+                Text="{Binding Text, Source={x:Reference root}}"
+                Unfocused="Entry_Focused"
+                VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </Frame>
+</ContentView>

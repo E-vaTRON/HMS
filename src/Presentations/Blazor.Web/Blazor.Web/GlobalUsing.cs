@@ -1,0 +1,13 @@
+﻿global using AutoMapper;
+global using Azure.Storage;
+global using Azure.Storage.Blobs;
+global using Blazor.Web;
+global using Blazor.Web.Components;
+global using Blazored.LocalStorage;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Options;
+global using Microsoft.FluentUI.AspNetCore.Components;
+global using Microsoft.IdentityModel.Tokens;
+global using System.Text;

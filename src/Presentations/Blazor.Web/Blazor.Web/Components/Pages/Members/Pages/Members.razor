@@ -1,0 +1,175 @@
+﻿@page "/members"
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Members</PageTitle>
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())" Appearance="Appearance.Accent" OnClick="async () => await AddMemberDialog()">Add member</FluentButton>
+            <FluentLabel Typo="Typography.Subject">
+                @UsersInDatabase?.Count() <FluentIcon Value="@(new Icons.Regular.Size20.People())" />
+            </FluentLabel>
+            <FluentLabel Typo="Typography.Subject">
+                @UsersPaidInfo?.Where(x => x.IsFullyPaid).Count() <FluentIcon Value="@(new Icons.Regular.Size20.PeopleMoney())" Color="Color.Success" />
+            </FluentLabel>
+            <FluentLabel Typo="Typography.Subject">
+                @UsersPaidInfo?.Where(x => !x.IsFullyPaid).Count() <FluentIcon Value="@(new Icons.Regular.Size20.PeopleError())" Color="Color.Error" />
+            </FluentLabel>
+            <FluentCombobox slot="end" 
+                            Items=@Users?.Select(x => x.FirstName).ToList() 
+                            TOption="string" 
+                            Height="200px" 
+                            Placeholder="Search member by first name"
+                            Autocomplete="ComboboxAutocomplete.Both" 
+                            Multiple="false" 
+                            SelectedOptionChanged="@(async(firstName) => await SelectMemberByFirstNameAsync(firstName))"/>
+
+            <FluentButton IconStart="@(new Icons.Regular.Size24.ArrowDownload())"
+                          Appearance="Appearance.Outline"
+                          @onclick=@( async () => await DownloadExcel()) />
+
+            <FluentButton IconStart="@(new Icons.Regular.Size24.ArrowUpload())"
+                          Appearance="Appearance.Outline"
+                          @onclick=@( async () => await UploadExcel()) />
+        </FluentToolbar>
+    </FluentCard>
+
+    <FluentCard AreaRestricted="false">
+        <FluentStack HorizontalGap="5">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                Filter by last name:            
+                <FluentSearch @bind-Value="@LastNameFilter"
+                              @bind-Value:after=HandleTextFilterInput
+                              Placeholder="Last name filter">
+                              
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Filter())" 
+                                Color="@Color.Neutral" 
+                                Slot="start" />
+                </FluentSearch>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                Filter by street:           
+                <FluentSearch @bind-Value="@StreetFilter"
+                              @bind-Value:after=HandleTextFilterInput
+                              Placeholder="Street filter">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Filter())" 
+                                Color="@Color.Neutral" 
+                                Slot="start" />
+                </FluentSearch>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                
+                <FluentRadioGroup Name="blockRadioChoiceGroup" 
+                                  @bind-Value=BlockRadioChoice 
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" Label="Sort by block:">
+                    <FluentRadio Value=@("1")>
+                            None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                            Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                            Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="phaseRadioChoiceGroup" 
+                                    @bind-Value=PhaseRadioChoice 
+                                    @bind-Value:after=SelectedChoice
+                                    Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" Label="Sort by phase:">
+                    <FluentRadio Value=@("1")>
+                            None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                            Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                            Descending ⬇️ 
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.DismissCircle())" 
+                          Appearance="Appearance.Outline" 
+                          @onclick=@(() => ClearFormats()) />
+        </FluentStack>
+    </FluentCard>
+
+    @if (Users == null)
+    {
+        <FluentProgressRing/>
+    }
+    else
+    {
+        <FluentCard>
+            <FluentDataGrid Id="membersgrid" 
+                            Style="overflow:auto;" 
+                            ResizableColumns=true 
+                            Items=@Users
+                            GridTemplateColumns="3fr 2fr 2fr 1.5fr 1.5fr 2fr 3fr 4fr" 
+                            TGridItem=MemberWithPayment>
+                <TemplateColumn Title="Avatar">
+                    <FluentPersona Name="@context.UserName"
+                                    Status="@StatusConverter(context.IsFullyPaid)"
+                                    StatusSize="PresenceBadgeSize.Small"
+                                    StatusTitle="@StatusTextConverter(context.IsFullyPaid)"
+                                    Image="@context.ProfileImageUrl"
+                                    ImageSize="30px">
+                    </FluentPersona>
+                </TemplateColumn>
+                <PropertyColumn Title="First name" Property="@(c => c!.FirstName)" Sortable="true" Align=Align.Start/>
+                <PropertyColumn Title="Last name" Property="@(c => c!.LastName)" Sortable="true" Align=Align.Start/>
+                <PropertyColumn Title="Phase" Property="@(c => c!.Phase)" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Block" Property="@(c => c!.Block)" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Street" Property="@(c => c!.Street)" Sortable="true" Align=Align.Start />
+                <TemplateColumn Title="Email" Align=Align.Start>
+                    <FluentButton @onclick=@(async () => await CopyToClipboard(context.Email!))>@context.Email</FluentButton>
+                </TemplateColumn>
+                <TemplateColumn Title="Actions" Align=Align.Center>
+                    <FluentStack>
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Copy())" Appearance="Appearance.Outline" @onclick=@(async () => await CopyToClipboard(context.Id)) />
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Eye())" Appearance="Appearance.Outline" @onclick=@(async () => await OpenMemberPaymentRecord(context)) />
+                        @if (userInfo != null)
+                        {
+                            if (IsFinancist(userInfo))
+                            {
+                                <FluentButton IconStart="@(new Icons.Regular.Size24.Edit())" Appearance="Appearance.Outline" @onclick=@(async () => await EditMemberDialog(context)) />
+                                <FluentButton IconStart="@(new Icons.Regular.Size24.KeyReset())" Appearance="Appearance.Outline" @onclick=@( async () => await ResetToDefaultPasswordAsync(context)) />
+                                <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick=@(async () => await Delete(context)) />
+                            }
+                        }
+                    </FluentStack>
+                </TemplateColumn>
+@*                     <PropertyColumn Title="Lot" Property="@(c => c!.Lot)" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Lot size" Property="@(c => c!.LotSize)" Sortable="true" Align=Align.Start/>
+                <PropertyColumn Title="Middle name" Property="@(c => c!.MiddleName)" Sortable="true" Align=Align.Start/>
+                <PropertyColumn Title="Phone number" Property="@(c => c!.PhoneNumber)" Sortable="true" Align=Align.Start/>
+                <PropertyColumn Title="Move in" Property="@(c => c!.CreatedAt.ToString("dd/MM/yy"))" Sortable="true" Align=Align.Start/> *@
+            </FluentDataGrid>
+            <br/>
+            <div>
+                <FluentStack HorizontalGap="5">
+                    @for (int i = 1; i <= PaginationCount; i++)
+                    {
+                        int currentPage = i;
+                        <FluentButton Appearance="PageButtonAppearance(currentPage)" @onclick="@( async () => {
+                            await RefreshAsync(currentPage, 
+                                                BlockRadioChoice, 
+                                                PhaseRadioChoice, 
+                                                LastNameFilter, 
+                                                StreetFilter);
+                            CurrentPage = currentPage;
+                        })">@currentPage</FluentButton>
+                    }
+                </FluentStack>
+
+            </div>
+
+        </FluentCard>
+    }
+</FluentStack>

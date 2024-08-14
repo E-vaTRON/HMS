@@ -1,0 +1,81 @@
+﻿@using Blazored.LocalStorage
+@inject ILocalStorageService _localStorage;
+@inject UserManager _userManager;
+
+<FluentCard Width="50" style="padding: 5px; margin-left: 15px" @rendermode="RenderMode.InteractiveServer">
+    <FluentNavMenuTree Width="250" style="margin: 5px" Collapsible="true" @bind-Expanded="@isExpanded" Title="LBA4" @rendermode="RenderMode.InteractiveServer">
+        <FluentNavMenuLink Href="/home" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavMenuLink>
+        <FluentNavMenuLink Href="/announcements" Icon="@(new Icons.Regular.Size20.Megaphone())" IconColor="Color.Accent">Announcements</FluentNavMenuLink>
+        <FluentNavMenuLink Href="/members" Icon="@(new Icons.Regular.Size20.People())" IconColor="Color.Accent">Members list</FluentNavMenuLink>
+        @if (userInfo != null)
+        {
+            if (IsFinancist(userInfo))
+            {
+                <FluentNavMenuLink Href="/bills" Icon="@(new Icons.Regular.Size20.ReceiptSparkles())" IconColor="Color.Accent">Bills</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/collections" Icon="@(new Icons.Regular.Size20.ReceiptMoney())" IconColor="Color.Accent">Collection</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/services" Icon="@(new Icons.Regular.Size20.ServiceBell())" IconColor="Color.Accent">Services</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/drugs" Icon="@(new Icons.Regular.Size20.ClipboardBulletList())" IconColor="Color.Accent">Drugs</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/admins" Icon="@(new Icons.Regular.Size20.ContactCard())" IconColor="Color.Accent">Admins</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/archive" Icon="@(new Icons.Regular.Size20.Archive())" IconColor="Color.Error"><span style="color: #bc2f32;">Archive</span></FluentNavMenuLink>
+            }
+            else if (IsDoctor(userInfo))
+            {
+                <FluentNavMenuLink Href="/buildingstructure" Icon="@(new Icons.Regular.Size20.Building())" IconColor="Color.Accent">Building Structure</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/requests" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Customer requests</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/bills" Icon="@(new Icons.Regular.Size20.ReceiptSparkles())" IconColor="Color.Accent">Bills</FluentNavMenuLink>
+            }
+            else if (IsNurse(userInfo))
+            {
+                <FluentNavMenuLink Href="/buildingstructure" Icon="@(new Icons.Regular.Size20.Building())" IconColor="Color.Accent">Building Structure</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/requests" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent">Customer requests</FluentNavMenuLink>
+                <FluentNavMenuLink Href="/bills" Icon="@(new Icons.Regular.Size20.ReceiptSparkles())" IconColor="Color.Accent">Bills</FluentNavMenuLink>
+            }
+        }
+    </FluentNavMenuTree>
+</FluentCard>
+
+@code
+{
+    bool isExpanded = false;
+
+    User? userInfo;
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var userGuid = await _localStorage.GetItemAsync<string>("userId");
+            if (userGuid is null)
+                return;
+
+
+            userInfo = await _userManager.FindByGuidAsync(userGuid);
+            if (userInfo is null)
+                return;
+
+            StateHasChanged();
+        }
+    }
+
+    private bool IsFinancist(User user)
+    {
+        return MasterDataConstants.FinancistIds.Contains(user.Id);
+    }
+
+    private bool IsDoctor(User user)
+    {
+        return MasterDataConstants.DoctorIds.Contains(user.Id);
+    }
+
+    private bool IsNurse(User user)
+    {
+        return MasterDataConstants.NurseIds.Contains(user.Id);
+    }
+}
+
+

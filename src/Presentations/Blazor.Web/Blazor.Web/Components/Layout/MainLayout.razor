@@ -1,0 +1,36 @@
+﻿@using Blazored.LocalStorage
+
+@inject ILocalStorageService _localStorage;
+
+@inherits LayoutComponentBase
+
+
+<FluentDesignTheme @bind-Mode="@Mode" OfficeColor="OfficeColor.Sway">
+    <FluentLayout>
+        <FluentHeader>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <UserInfo @rendermode="RenderMode.InteractiveServer" />
+            </div>
+        </FluentHeader>
+        <br/>
+        <FluentStack Class="main" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" Width="100%">
+            <NavMenu @rendermode="RenderMode.InteractiveServer" />
+            <FluentBodyContent>
+                <div class="content">
+                    @Body
+                    <FluentDialogProvider @rendermode="RenderMode.InteractiveServer" />
+                    <FluentToastProvider @rendermode="RenderMode.InteractiveServer" />
+                </div>
+            </FluentBodyContent>
+        </FluentStack>
+        <br />
+        <FluentFooter>
+            HMS
+        </FluentFooter>
+    </FluentLayout>
+</FluentDesignTheme>
+
+@code{
+    DesignThemeModes Mode { get; set; } = DesignThemeModes.Dark;
+
+}

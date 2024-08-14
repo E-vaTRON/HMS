@@ -1,0 +1,119 @@
+@implements IDialogContentComponent<AddRequestModel>
+@namespace Blazor.Web
+@inject IUsersRepository UsersRepository
+@using System.Globalization
+
+<FluentDialogBody>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+        <FluentTextField @bind-Value="@userGuid"
+                         Required style="width: 100%;"
+                         @onfocusout=@(async () => await CheckUserGuid())>
+            <FluentIcon Value="@(new Icons.Regular.Size16.ContactCard())" Slot="start" Color="Color.Neutral" />User Id:
+        </FluentTextField>
+        @if (Content.SelectedUser is null || !Content.IsUserIdValid)
+        {
+            <span style="color: red;">@errorMessage</span>
+        }
+        else
+        {
+            <FluentPersona Name="@(Content?.SelectedUser is not null ? Content?.SelectedUser.Email : "No Email")"
+                           Status="PresenceStatus.Available"
+                           Image="@(@Content?.SelectedUser is not null ? Content?.SelectedUser.ProfileImageUrl : null)"
+                           StatusTitle="You are online"
+                           ImageSize="35px" />
+        }
+
+    </FluentStack>
+
+    <div style="max-height: 300px; overflow-y:auto; overflow-x:hidden; margin-top:15px">
+                <label>Symptoms</label>
+                <FluentStack Style="margin: 20px;" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                    @foreach (var symptom in this.Content.Symptoms)
+                    {
+                        bool isChecked = this.Content.SelectedSymptoms.Any(x => x.Id == symptom.Id);
+                        <FluentCheckbox Label=@symptom.Name
+                                        @bind-Value:get="isChecked"
+                                        @bind-Value:set="async c => await OnCheckBoxChanged(symptom, c)" />
+                    }
+                </FluentStack>
+    </div>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public AddRequestModel Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    bool isLoading = false;
+    string userGuid = string.Empty;
+    string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+    }
+
+    private async Task OnCheckBoxChanged(SymptomModel symptom, bool isVisible) 
+    {
+        if (isVisible) {
+            //this.States.SelectedOptions.Clear();//remove this line to allow multiple choices
+            this.Content.SelectedSymptoms.Add(symptom);
+        }
+        else {
+            //this.States.SelectedOptions = [];//comment this to allow multiple choices
+            this.Content.SelectedSymptoms.Remove(symptom); //un comment this to allow mc
+        }
+
+        if (Content!.IsUserIdValid == true || Content.SelectedSymptoms is not null || !Content.SelectedSymptoms!.Any())
+        {
+            Dialog!.TogglePrimaryActionButton(true);
+        }
+    }
+
+    async Task CheckUserGuid()
+    {
+        errorMessage = string.Empty;
+        Content.SelectedUser = null!;
+
+        if (string.IsNullOrEmpty(userGuid))
+        {
+            errorMessage = "Please insert user ID";
+            return;
+        }
+
+        isLoading = true;
+        var userInfo = await UsersRepository.FindByGuidAsync(userGuid);
+        if (userInfo is null)
+        {
+            errorMessage = "No user found please check your ID again";
+            isLoading = false;
+            return;
+        }
+
+        Content.SelectedUser = userInfo;
+
+        ValidateUserGuid();
+
+        isLoading = false;
+    }
+
+    void ValidateUserGuid()
+    {
+        if (Content.SelectedUser is not null)
+            Content!.IsUserIdValid = true;
+        else if (string.IsNullOrEmpty(userGuid))
+        {
+            errorMessage = "Please insert user ID";
+        }
+        else
+        {
+            errorMessage = "No user found please check your ID again";
+        }
+    }
+}

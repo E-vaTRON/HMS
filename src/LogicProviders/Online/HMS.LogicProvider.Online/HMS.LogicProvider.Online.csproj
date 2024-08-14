@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Refit" Version="7.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
+    <PackageReference Include="Refit.Newtonsoft.Json" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\Payment\DTOs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\HMS.Contract\HMS.Contract.csproj" />
+    <ProjectReference Include="..\..\..\Core\HMS.Domain\HMS.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

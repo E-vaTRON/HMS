@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.BillingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    Padding="10"
+    x:DataType="app:BillingPageViewModel"
+    Shell.BackgroundColor="#18f335">
+
+    <Shell.TitleView>
+        <Grid>
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="28"
+                HorizontalOptions="Start"
+                Text="{x:Binding Title,
+                                 Mode=OneWay}"
+                TextColor="White"
+                VerticalOptions="Center" />
+        </Grid>
+    </Shell.TitleView>
+
+    <app:BasePage.ToolbarItems>
+        <ToolbarItem
+            Clicked="Search_Clicked"
+            Command="{x:Binding ActivateSearchCommand}"
+            IconImageSource="{x:StaticResource Search24IconRegular}"
+            Text="Search" />
+    </app:BasePage.ToolbarItems>
+
+    <app:BasePage.Resources>
+
+        <x:Boolean x:Key="True">True</x:Boolean>
+
+        <DataTemplate x:Key="BillingItemTemplate" x:DataType="app:BillingPageItemModel">
+            <app:BillingItemContentView ComponentData="{x:Binding}" />
+        </DataTemplate>
+
+        <LinearItemsLayout
+            x:Key="BillingItemsLayout"
+            ItemSpacing="10"
+            Orientation="Vertical" />
+    </app:BasePage.Resources>
+
+    <Grid RowDefinitions="auto, auto,*" RowSpacing="8">
+        <Border
+            toolkit:StateView.StateKey="Searching"
+            BackgroundColor="{x:AppThemeBinding Light=#333333,
+                                                Dark=#ffffff}"
+            IsVisible="{x:Binding IsSearchBarVisible}"
+            StrokeShape="RoundRectangle 8,8,8,8"
+            StrokeThickness="3">
+            <SearchBar
+                x:Name="BillSearchBar"
+                BackgroundColor="{x:AppThemeBinding Dark=#333333,
+                                                    Light=#ffffff}"
+                CancelButtonColor="{x:AppThemeBinding Light=#333333,
+                                                      Dark=#ffffff}"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="18"
+                Placeholder="Search bills"
+                TextChanged="BillSearchBar_TextChanged" />
+        </Border>
+        <Button
+            x:Name="DoneButton"
+            Grid.Row="1"
+            Margin="8"
+            Clicked="Done_Clicked"
+            Command="{x:Binding DisableSearchCommand}"
+            FontFamily="{x:Static app:FontNames.Paulle1V}"
+            FontSize="24"
+            IsVisible="{x:Binding IsSearchBarVisible}"
+            Text="Done"
+            TextColor="{x:AppThemeBinding Dark=#333333,
+                                          Light=#ffffff}" />
+        <RefreshView
+            Grid.Row="2"
+            Command="{x:Binding RefreshCommand}"
+            CommandParameter="{x:StaticResource True}"
+            IsRefreshing="{x:Binding IsBusy,
+                                     Mode=OneWay}">
+            <CollectionView
+                ItemTemplate="{x:StaticResource BillingItemTemplate}"
+                ItemsLayout="{x:StaticResource BillingItemsLayout}"
+                ItemsSource="{x:Binding Items,
+                                        Mode=TwoWay}" />
+        </RefreshView>
+    </Grid>
+</app:BasePage>

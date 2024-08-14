@@ -1,0 +1,58 @@
+﻿@page "/services"
+@using System.Globalization;
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Services</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())" Appearance="Appearance.Accent" OnClick="async () => await AddServiceDialog()">Add service</FluentButton>
+        </FluentToolbar>
+    </FluentCard>
+
+    @if (Items is null)
+    {
+        <FluentProgressRing/>        
+    }
+    else
+    {
+        <FluentCard>
+            <FluentDataGrid Id="servicesgrid" Items=@Items GridTemplateColumns="1fr 1.4fr 2fr" TGridItem=ServiceModel>
+                <TemplateColumn Title="Item description" Align=Align.Start>
+                    <FluentBadge Fill="somevalue" BackgroundColor="@context.Color" Color="white" Style="font-size:larger"> @context.Name </FluentBadge>
+                </TemplateColumn>
+                <PropertyColumn Title="Price" Property="@(c => c!.Price.ToString("C2", CultureInfo.GetCultureInfo("en-PH")))" Sortable="true" Align=Align.Start />
+                <TemplateColumn Title="Actions" Align=Align.Center>
+                    <FluentStack>
+                        @* Disabled=@DisableEditButton(context) *@
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Edit())" 
+                                      Appearance="Appearance.Outline" 
+                                      @onclick="@(() => EditServiceDialog(context))"/>
+
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())"
+                                      Appearance="Appearance.Outline"
+                                      @onclick="@(() => Delete(context))" />
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+            <br />
+            <div>
+                <FluentStack HorizontalGap="5">
+                    @for (int i = 1; i <= PaginationCount; i++)
+                    {
+                        int currentPage = i;
+                        <FluentButton Appearance="PageButtonAppearance(currentPage)" @onclick="@( async () => {
+                            await RefreshAsync(currentPage);
+                            CurrentPage = currentPage;
+                        })">@currentPage</FluentButton>
+                    }
+                </FluentStack>
+            </div>
+        </FluentCard>
+    }
+</FluentStack>

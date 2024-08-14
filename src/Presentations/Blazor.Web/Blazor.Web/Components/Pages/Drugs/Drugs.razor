@@ -1,0 +1,162 @@
+﻿@page "/drugs"
+@using System.Globalization;
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Drugs</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())" 
+                          Appearance="Appearance.Accent" 
+                          OnClick="async () => await AddDrugDialog()">
+                          Add drug
+            </FluentButton>            
+            <FluentButton IconStart="@(new Icons.Regular.Size24.ArrowDownload())"
+                          Appearance="Appearance.Outline"
+                          @onclick=@( async () => await DownloadExcel()) />
+            <FluentButton IconStart="@(new Icons.Regular.Size24.ArrowUpload())"
+                          Appearance="Appearance.Outline"
+                          @onclick=@( async () => await UploadExcel()) />
+            @* <FluentLabel slot="end" Typo="Typography.H3">
+               Total: @TotalAmount
+            </FluentLabel> *@
+        </FluentToolbar>
+    </FluentCard>
+
+    <FluentCard AreaRestricted="false">
+        <FluentStack HorizontalGap="5">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                Filter by item description:
+                <FluentSearch @bind-Value="@ItemDescriptionFilter"
+                              @bind-Value:after=HandleTextFilterInput
+                              Placeholder="Item description filter">
+
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Filter())"
+                                Color="@Color.Neutral"
+                                Slot="start" />
+                </FluentSearch>
+            </FluentStack>
+            @* <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="amountRadioChoiceGroup"
+                                  @bind-Value=AmountRadioChoice
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                  Label="Sort by amount:">
+                    <FluentRadio Value=@("1")>
+                        None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                        Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                        Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack> *@
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="orderDateRadioChoiceGroup"
+                                  @bind-Value=OrderDateRadioChoice
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                  Label="Sort by order date:">
+                    <FluentRadio Value=@("1")>
+                        None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                        Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                        Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            @* <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="quantityRadioChoiceGroup"
+                                  @bind-Value=QuantityRadioChoice
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                  Label="Sort by quantity:">
+                    <FluentRadio Value=@("1")>
+                        None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                        Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                        Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack> *@            
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="priceRadioChoiceGroup"
+                                  @bind-Value=PriceRadioChoice
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal"
+                                  Label="Sort by price:">
+                    <FluentRadio Value=@("1")>
+                        None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                        Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                        Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.DismissCircle())"
+                          Appearance="Appearance.Outline"
+                          @onclick=@(() => ClearFormats()) />
+        </FluentStack>
+    </FluentCard>
+
+    @if (Items is null)
+    {
+        <FluentProgressRing/>        
+    }
+    else
+    {
+        <FluentCard>
+            <FluentDataGrid Id="servicesgrid" 
+                            ResizableColumns=true 
+                            Items=@Items 
+                            GridTemplateColumns="2fr 1.5fr 1.5fr 2fr 2.5fr" 
+                            TGridItem=Drug>
+                <PropertyColumn Title="Item" Property="@(c => c!.Description)" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Date" Property="@(c => c!.OrderDate.HasValue ? c.OrderDate.Value.ToString("dd/MM/yy") : "Unknow date")" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Country" Property="@(c => c!.Supplier)" Sortable="true" Align=Align.Center />
+                <PropertyColumn Title="Price" Property="@(c => c!.Price.ToString("C2", CultureInfo.GetCultureInfo("en-PH")))" Sortable="true" Align=Align.Center />
+                <TemplateColumn Title="Actions" Align=Align.Center>
+                    <FluentStack>
+                        @* <FluentButton IconStart="@(new Icons.Regular.Size24.Copy())" Appearance="Appearance.Outline" @onclick="@(() => CopyToClipboard(context.Id.ToString()))" /> *@
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Edit())" Appearance="Appearance.Outline" @onclick="@(() => EditDrugDiaglog(context))" />
+                        <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick="@(async () => await Delete(context))" />
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+            <br/>
+            <div>
+                <FluentStack HorizontalGap="5">
+                    @for (int i = 1; i <= PaginationCount; i++)
+                    {
+                        int currentPage = i;
+                        <FluentButton Appearance="PageButtonAppearance(currentPage)" @onclick="@( async () => {
+                            await RefreshAsync(currentPage,
+                                                ItemDescriptionFilter,
+                                                AmountRadioChoice,
+                                                OrderDateRadioChoice,
+                                                QuantityRadioChoice,
+                                                PriceRadioChoice);
+                            CurrentPage = currentPage;
+                        })">@currentPage</FluentButton>
+                    }
+                </FluentStack>
+            </div>
+        </FluentCard>
+    }
+</FluentStack>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app:BasePage
+    x:Class="HMS.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:app="clr-namespace:HMS"
+    Title="HomePage"
+    Padding="20"
+    x:DataType="app:HomePageViewModel"
+    Shell.BackgroundColor="#18f335">
+    <Shell.TitleView>
+        <Grid ColumnDefinitions="*, 100">
+            <Label
+                FontAttributes="Bold"
+                FontFamily="{x:Static app:FontNames.Paulle1V}"
+                FontSize="Title"
+                HorizontalOptions="Start"
+                Text="Home"
+                TextColor="White"
+                VerticalOptions="Center" />
+            <!--<Image
+                Grid.Column="1"
+                HeightRequest="40"
+                HorizontalOptions="Center"
+                Source="lbalogo.png"
+                VerticalOptions="Center"
+                WidthRequest="60" />-->
+        </Grid>
+    </Shell.TitleView>
+
+    <app:BasePage.Resources>
+        <FontImageSource
+            x:Key="AnnouncementsIconRegular"
+            FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+            Glyph="{x:Static app:FluentUIIcon.Ic_fluent_megaphone_24_regular}"
+            Color="{x:Static app:AppColors.White}" />
+
+        <FontImageSource
+            x:Key="BillingIconRegular"
+            FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+            Glyph="{x:Static app:FluentUIIcon.Ic_fluent_receipt_24_regular}"
+            Color="{x:Static app:AppColors.White}" />
+
+        <FontImageSource
+            x:Key="PaymentRecordIconRegular"
+            FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+            Glyph="{x:Static app:FluentUIIcon.Ic_fluent_document_bullet_list_clock_24_regular}"
+            Color="{x:Static app:AppColors.White}" />
+
+        <FontImageSource
+            x:Key="ProfileIconRegular"
+            FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+            Glyph="{x:Static app:FluentUIIcon.Ic_fluent_contact_card_24_regular}"
+            Color="{x:Static app:AppColors.White}" />
+
+        <FontImageSource 
+            x:Key="RequestIconRegular"
+            FontFamily="{x:Static app:FontNames.FluentSystemIconsRegular}"
+            Glyph="{x:Static app:FluentUIIcon.Ic_fluent_person_feedback_24_regular}" 
+            Color="{x:Static app:AppColors.White}" />
+    </app:BasePage.Resources>
+
+    <Frame
+        BackgroundColor="{x:AppThemeBinding Dark=#333333,
+                                            Light=#ffffff}"
+        HasShadow="True"
+        HorizontalOptions="Center"
+        VerticalOptions="Start">
+        <Grid
+            ColumnDefinitions="*, *"
+            ColumnSpacing="8"
+            RowDefinitions="*, *, *"
+            RowSpacing="8">
+            <Frame
+                BackgroundColor="#f4b041"
+                HeightRequest="155"
+                WidthRequest="155">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding GoToRouteCommand}" CommandParameter="{x:Binding AnnouncementsRoute}" />
+                </Frame.GestureRecognizers>
+                <Grid>
+                    <Image
+                        HeightRequest="60"
+                        Source="{x:StaticResource AnnouncementsIconRegular}"
+                        WidthRequest="60" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        Text="Announcements"
+                        TextColor="White"
+                        VerticalOptions="End" />
+                </Grid>
+            </Frame>
+
+            <Frame
+                Grid.Row="1"
+                BackgroundColor="#9420fd"
+                HeightRequest="155"
+                WidthRequest="155">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding GoToRouteCommand}" CommandParameter="{x:Binding PaymentRecordRoute}" />
+                </Frame.GestureRecognizers>
+                <Grid>
+                    <Image
+                        HeightRequest="60"
+                        Source="{x:StaticResource PaymentRecordIconRegular}"
+                        WidthRequest="60" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        Text="Payment records"
+                        TextColor="White"
+                        VerticalOptions="End" />
+                </Grid>
+
+            </Frame>
+
+            <Frame
+                Grid.Column="1"
+                BackgroundColor="#80dee8"
+                HeightRequest="155"
+                WidthRequest="155">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding GoToRouteCommand}" CommandParameter="{x:Binding BillingRoute}" />
+                </Frame.GestureRecognizers>
+                <Grid>
+                    <Image
+                        HeightRequest="60"
+                        Source="{x:StaticResource BillingIconRegular}"
+                        WidthRequest="60" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        Text="Bills"
+                        TextColor="White"
+                        VerticalOptions="End" />
+                </Grid>
+
+            </Frame>
+
+            <Frame
+                Grid.Row="1"
+                Grid.Column="1"
+                BackgroundColor="#f82f30"
+                HeightRequest="155"
+                WidthRequest="155">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding GoToRouteCommand}" CommandParameter="{x:Binding ProfileRoute}" />
+                </Frame.GestureRecognizers>
+                <Grid>
+                    <Image
+                        HeightRequest="60"
+                        Source="{x:StaticResource ProfileIconRegular}"
+                        WidthRequest="60" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        Text="Profile"
+                        TextColor="White"
+                        VerticalOptions="End" />
+                </Grid>
+
+            </Frame>
+
+            <Frame
+                Grid.Row="2"
+                Grid.Column="0"
+                BackgroundColor="#51a231"
+                HeightRequest="155"
+                WidthRequest="155">     
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{x:Binding GoToRouteCommand}" CommandParameter="{x:Binding RequestRoute}" />
+                </Frame.GestureRecognizers>
+                <Grid>
+                    <Image
+                        HeightRequest="60"
+                        Source="{x:StaticResource RequestIconRegular}"
+                        WidthRequest="60"/>
+                    <Label
+                        FontAttributes="Bold"
+                        FontFamily="{x:Static app:FontNames.Paulle1V}"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        Text="Request"
+                        TextColor="White"
+                        VerticalOptions="End" />
+                </Grid>
+
+            </Frame>
+        </Grid>
+    </Frame>
+</app:BasePage>

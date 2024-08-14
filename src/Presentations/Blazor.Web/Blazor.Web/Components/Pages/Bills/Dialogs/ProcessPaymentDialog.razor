@@ -1,0 +1,94 @@
+﻿@implements IDialogContentComponent<BillWithMemberAndServicesInfo>
+@namespace Blazor.Web
+@inject IUsersRepository UsersRepository
+@using System.Globalization
+
+<FluentDialogBody>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+        Deadline: <FluentBadge Style="font-size:larger" Fill="somevalue" BackgroundColor="#24acf2" Color="white">@Content.Deadline.ToString("dd/MM/yy")</FluentBadge>
+        @if (DateTime.Now > Content.Deadline)
+        {
+            <FluentBadge Style="font-size:larger" Fill="somevalue" BackgroundColor="red" Color="white"> Penalty </FluentBadge>
+        }
+        Amount: <FluentBadge Style="font-size:larger" Fill="somevalue" BackgroundColor="#0cffbb" Color="white"> @CalculateTotalAmount().ToString("C2", CultureInfo.GetCultureInfo("en-PH"))</FluentBadge>
+        Customer paid: <FluentBadge Style="font-size:larger" Fill="somevalue" BackgroundColor="#5cd54a" Color="white"> @amount.ToString("C2", CultureInfo.GetCultureInfo("en-PH")) </FluentBadge>
+        <FluentNumberField @bind-Value="@amount" @oninput="@CheckPayment" Min="0">
+            <FluentIcon Value="@(new Icons.Regular.Size16.Money())" Slot="start" Color="Color.Neutral" />Amount:
+        </FluentNumberField>
+        <FluentBadge Style="font-size:larger" Fill="somevalue" BackgroundColor="@amountColor" Color="white">@amountMessage</FluentBadge>
+        <FluentDatePicker Label="Paid date" @bind-Value="@Content!.PaidDate" />
+    </FluentStack>
+</FluentDialogBody>
+<FluentDialogFooter>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public BillWithMemberAndServicesInfo Content { get; set; } = default!;
+
+    bool isLoading = false;
+    decimal amount;
+    string userGuid = string.Empty;
+    string amountColor = string.Empty;
+    string amountMessage = string.Empty;
+
+    private decimal CalculateTotalAmount()
+    {
+        decimal totalAmount = 0;
+
+        foreach (var service in Content.Services)
+        {
+            switch (service.CalculationType)
+            {
+                case CalculationType.LotSizeMultiplication:
+                    totalAmount += service.Price * Content.User!.LotSize;
+                    break;
+                case CalculationType.DirectAddition:
+                    totalAmount += (service.Price * service.Quantity);
+                    break;
+                default:
+                    totalAmount += (service.Price * service.Quantity);
+                    break;
+            }
+        }
+
+        return totalAmount;
+    }
+
+    private void CheckPayment(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value.ToString(), out decimal userInput))
+        {
+            decimal totalAmount = CalculateTotalAmount();
+
+            if (userInput < totalAmount)
+            {
+                Content.ExcessAmount = default!;
+                var underPaidAmount = totalAmount - userInput;
+                amountColor = "red";
+                amountMessage = $"Underpaid: {underPaidAmount}";
+                Content.UnderPaidAmount = underPaidAmount;
+            }
+            else if (userInput > totalAmount)
+            {
+                Content.UnderPaidAmount = default!;
+                var excessAmount = userInput - totalAmount;
+                amountColor = "#5cd54a";
+                amountMessage = $"Excess: {excessAmount}";
+                Content.ExcessAmount = excessAmount;
+            }
+            else
+            {
+                Content.ExcessAmount = default!;
+                Content.UnderPaidAmount = default!;
+                amountColor = "#0cffbb";
+                amountMessage = "Payment is exact";
+            }
+        }
+        else
+        {
+            // Handle invalid input (non-decimal)
+            Console.WriteLine("Invalid input");
+        }
+    }
+}

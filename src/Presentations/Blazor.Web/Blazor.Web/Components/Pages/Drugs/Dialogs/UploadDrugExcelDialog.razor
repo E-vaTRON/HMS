@@ -1,0 +1,186 @@
+﻿@implements IDialogContentComponent<UploadDrugsExcelModel>
+@namespace Blazor.Web
+@using System.Text.RegularExpressions
+@using ExcelDataReader
+@using System.Data
+@using System.Globalization
+
+@inject IExcelService _excelService;
+
+<FluentDialogBody>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <FluentInputFile Id="my-file-uploader"
+                         Mode="InputFileMode.SaveToTemporaryFolder"
+                         Multiple="false"
+                         ShowPreview="true"
+                         MaximumFileCount="1"
+                         MaximumFileSize="50000000"
+                         Accept=".xls,.xlsx"
+                         OnCompleted="@OnCompleted"
+                         OnFileError="@OnError"
+                         Style="height: 300px;"
+                         Class="demopanel">
+
+            <label for="my-file-uploader">
+                <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+            </label>
+
+            <div>
+                Drag file here you wish to upload,
+                or <label for="my-file-uploader">browse</label>
+                for them<span style="color: red;">*</span>.
+                <br />
+            </div>
+
+        </FluentInputFile>
+        @if (Files.Any())
+        {
+            <h4>File(s) uploaded:</h4>
+            <ul>
+                @foreach (var file in Files)
+                {
+                    <li>
+                        <b>@file.Name</b> 🔹
+                        @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                        @file.ContentType 🔹
+                        @file.LocalFile?.FullName
+                        @file.ErrorMessage
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (!string.IsNullOrEmpty(UploadError))
+        {
+            <h4>Upload error:</h4>
+            <p style="color: red">@UploadError</p>
+        }
+    </div>
+</FluentDialogBody>
+<FluentDialogFooter>
+</FluentDialogFooter>
+
+@code {
+
+    [Parameter]
+    public UploadDrugsExcelModel Content { get; set; } = default!;
+
+    string UploadError = string.Empty;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    async Task OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        UploadError = string.Empty;
+
+        var file = files.FirstOrDefault();
+        if (file == null)
+        {
+            // No file was uploaded
+            UploadError = "No file was uploaded.";
+            return;
+        }
+        else if (!file.ContentType.Equals("application/vnd.ms-excel") && !file.ContentType.Equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+        {
+            // The uploaded file is not an image
+            UploadError = "The uploaded file is not an excel file.";
+            return;
+        }
+
+        IFormFile formFile;
+
+        if (file.LocalFile != null)
+        {
+            // Create an instance of FormFile using LocalFile
+            formFile = new FormFile(
+                file.LocalFile.OpenRead(),
+                0,
+                file.LocalFile.Length,
+                Path.GetFileNameWithoutExtension(file.Name), // Set the actual file name
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else if (file.Buffer != null)
+        {
+            // Create an instance of FormFile using Buffer
+            formFile = new FormFile(
+                new MemoryStream(file.Buffer.Data),
+                0,
+                file.Buffer.Data.Length,
+                Path.GetFileNameWithoutExtension(file.Name),
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else if (file.Stream != null)
+        {
+            // Create an instance of FormFile using Stream
+            formFile = new FormFile(
+                file.Stream,
+                0,
+                file.Stream.Length,
+                Path.GetFileNameWithoutExtension(file.Name),
+                file.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = file.ContentType // Set the correct content type
+                };
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported upload mode");
+        }
+
+        if (formFile is null)
+        {
+            return;
+        }
+        if (formFile is not null)
+        {
+            Content.AttachedFile = formFile;
+        }
+
+        var dataTable = await _excelService.GetDataTableAsync(Content.AttachedFile);
+        var datas = new List<AddDrugModel>();
+        var rows = dataTable?.Rows;
+        for (int i = 0; i < rows?.Count; i++)
+        {
+            var row = rows[i];
+            var drug = new AddDrugModel();
+            var date = row["Date"]?.ToString();
+            var canParseDate = DateTime.TryParseExact(row["Date"]?.ToString(), "dd/MM/yy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var orderDate);
+            var canParseQuantity = int.TryParse(row["Quantity"]?.ToString(), out var quantity);
+            var canParsePrice = decimal.TryParse(row["Price"]?.ToString(), out var price);
+            if (string.IsNullOrEmpty(row["Item description"]?.ToString()) || string.IsNullOrEmpty(row["Phone number"]?.ToString()) || string.IsNullOrEmpty(row["Email"]?.ToString()) ||
+                string.IsNullOrEmpty(row["Address"]?.ToString()) || string.IsNullOrEmpty(row["Supplier"]?.ToString()) || string.IsNullOrEmpty(row["ORN"]?.ToString()) ||
+                string.IsNullOrEmpty(row["User name"]?.ToString()) || !canParseDate || !canParseQuantity || quantity <= 0 || !canParsePrice || price <= 0
+            )
+            {
+                UploadError = $"Data in file is invalid, At row: {i + 2}";
+                break;
+            }
+
+            datas.Add(new AddDrugModel
+                {
+                    Description = row["Item description"].ToString(),
+                    OrderDate = orderDate,
+                    Quantity = quantity,
+                    Price = price,
+                });
+
+        }
+        Content.Drugs = datas;
+    }
+
+    void OnError(FluentInputFileEventArgs file)
+    {
+    }
+}

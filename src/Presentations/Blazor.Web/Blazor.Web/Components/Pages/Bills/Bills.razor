@@ -1,0 +1,195 @@
+﻿@page "/bills"
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Bills</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+    <FluentCard AreaRestricted="false">
+        <FluentToolbar id="toolbar-fluent-components-two" style="width:100%">
+            <FluentButton IconStart="@(new Icons.Regular.Size24.AddCircle())" 
+                          Appearance="Appearance.Accent" 
+                          OnClick="@(() => OpenBillDialog())">
+                          Add bill
+            </FluentButton>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.ArrowDownload())"
+                    Appearance="Appearance.Outline"
+                    @onclick=@( async () => await DownloadExcel()) />
+        </FluentToolbar>
+    </FluentCard>
+
+    <FluentCard AreaRestricted="false">
+        <FluentStack HorizontalGap="5">
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                Filter by last name:            
+                <FluentSearch @bind-Value="@LastNameFilter"
+                              @bind-Value:after=HandleTextFilterInput
+                              Placeholder="Last name filter">
+                              
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Filter())" 
+                                Color="@Color.Neutral" 
+                                Slot="start" />
+                </FluentSearch>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                
+                <FluentRadioGroup Name="amountRadioChoiceGroup" 
+                                  @bind-Value=AmountRadioChoice 
+                                  @bind-Value:after=SelectedChoice
+                                  Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" 
+                                  Label="Sort by amount:">
+                    <FluentRadio Value=@("1")>
+                            None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                            Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                            Descending ⬇️
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="createdDateRadioChoiceGroup" 
+                                    @bind-Value=CreatedDateRadioChoice 
+                                    @bind-Value:after=SelectedChoice
+                                    Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" 
+                                    Label="Sort by created date:">
+                    <FluentRadio Value=@("1")>
+                            None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                            Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                            Descending ⬇️ 
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+                <FluentRadioGroup Name="deadlineRadioChoiceGroup" 
+                                    @bind-Value=DeadlineRadioChoice
+                                    @bind-Value:after=SelectedChoice
+                                    Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" 
+                                    Label="Sort by deadline:">
+                    <FluentRadio Value=@("1")>
+                            None 🚫
+                    </FluentRadio>
+                    <FluentRadio Value=@("2")>
+                            Ascending ⬆️
+                    </FluentRadio>
+                    <FluentRadio Value=@("3")>
+                            Descending ⬇️ 
+                    </FluentRadio>
+                </FluentRadioGroup>
+            </FluentStack>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.DismissCircle())" 
+                          Appearance="Appearance.Outline" 
+                          @onclick=@(() => ClearFormats()) />
+        </FluentStack>
+    </FluentCard>
+
+    @if (Items is null)
+    {
+        <FluentProgressRing />
+    }
+    else
+    {
+        <FluentCard>
+            <FluentDataGrid Id="membersgrid" Style="overflow:auto;" ResizableColumns=true Items=@Items GridTemplateColumns="2.5fr 2fr 1.5fr 1.5fr 1.5fr 2fr 1.5fr 1.5fr" TGridItem=BillWithMemberAndServicesInfo>
+@*              <TemplateColumn Title="ID" Align=Align.Start>
+                    <FluentStack>
+                        <FluentButton Appearance="Appearance.Outline" 
+                                        OnClick="@(async () => await CopyToClipboard(context.Id.ToString()))">
+                                        @context.Id
+                        </FluentButton>
+                    </FluentStack>
+                </TemplateColumn> *@
+                <TemplateColumn Title="Services" Align=Align.Start>
+                    @if(!context!.Services.Any())
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No services were selected </FluentBadge> 
+                    }
+                    else{
+                        <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                            @foreach (var service in context!.Services)
+                            {
+                                <FluentBadge Fill="somevalue" BackgroundColor="@service!.Color" Color="white">@service!.Name</FluentBadge>
+                            }
+                        </FluentHorizontalScroll >
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Drug" Align=Align.Start>
+                    @if (!context!.DrugInBills.Any())
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No services were selected </FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                            @foreach (var drug in context!.DrugInBills)
+                            {
+                                <FluentBadge Fill="somevalue" BackgroundColor="#7f7f7f" Color="white">@drug!.Description, @drug!.Quantity</FluentBadge>
+                            }
+                        </FluentHorizontalScroll>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Rooms" Align=Align.Start>
+                    @if (!context!.Rooms.Any())
+                    {
+                        <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No room available </FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                            @foreach (var room in context!.Rooms)
+                            {
+                                <FluentBadge Fill="somevalue" BackgroundColor="#7f7f7f" Color="white">@room!.Name</FluentBadge>
+                            }
+                        </FluentHorizontalScroll>
+                    }
+                </TemplateColumn>
+                <PropertyColumn Title="Created Date" Property="@(c => c!.CreatedDate)" Format="dd/MM/yy" Sortable="true" Align=Align.Start />
+                <PropertyColumn Title="Deadline" Property="@(c => c!.Deadline)" Format="dd/MM/yy" Sortable="true" Align=Align.Start />
+                <PropertyColumn Title="Full name" Property="@(c => c!.User != null ? c.User.FirstName + " " + c.User.MiddleName + " " + c.User.LastName : "No user assigned")" Sortable="true" Align=Align.Start />
+                <PropertyColumn Title="Amount" Property="@(c => c!.User != null ? Sum(c) : "No user assigned")" Sortable="true" Align=Align.Center />
+                <TemplateColumn Title="Actions" Align=Align.Center>
+                    <FluentStack>
+                        @if (userInfo != null)
+                        {
+                            <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick=@(async () => await Delete(context)) />
+                            @if (IsFinancist(userInfo))
+                            {
+                                <FluentButton IconStart="@(new Icons.Regular.Size24.Money())" Appearance="Appearance.Outline" @onclick=@(async () => await ProcessBillPayment(context)) />
+                            }
+                            else if (IsDoctor(userInfo))
+                            {
+                                <FluentButton IconStart="@(new Icons.Regular.Size24.Edit())" Appearance="Appearance.Outline" @onclick=@(async () => await EditBillDialog(context)) />
+                            }
+                        }
+                    </FluentStack>
+                </TemplateColumn>
+                </FluentDataGrid>
+            <br/>
+            <div>
+                <FluentStack HorizontalGap="5">
+                    @for (int i = 1; i <= PaginationCount; i++)
+                    {
+                        int currentPage = i;
+                        <FluentButton Appearance="PageButtonAppearance(currentPage)" @onclick="@( async () => {
+                            await RefreshAsync(currentPage, 
+                                               LastNameFilter,
+                                               AmountRadioChoice,
+                                               CreatedDateRadioChoice,
+                                               DeadlineRadioChoice);
+                            CurrentPage = currentPage;
+                        })">@currentPage</FluentButton>
+                    }
+                </FluentStack>
+            </div>
+        </FluentCard>
+    }
+</FluentStack>

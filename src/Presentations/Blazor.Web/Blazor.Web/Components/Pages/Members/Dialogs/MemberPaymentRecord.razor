@@ -1,0 +1,161 @@
+﻿@using System.Globalization;
+@implements IDialogContentComponent<MemberWithPayment>
+@inject IToastService ToastService
+@inject IJSRuntime JSRuntime
+@namespace Blazor.Web
+
+<FluentDialogHeader>
+    <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical" VerticalGap="10">
+        <FluentPersona Name="@UserFullName(Content)"
+                       Status="@StatusConverter(Content.IsFullyPaid)"
+                       StatusSize="PresenceBadgeSize.Small"
+                       Image="@Content.ProfileImageUrl"
+                       ImageSize="50px" />
+        <FluentStack Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Horizontal" Style="margin:5px">
+            @* LotSize: <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">@Content.LotSize</FluentBadge>
+            Phase: <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">@Content.Phase</FluentBadge>
+            Lot: <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">@Content.Lot</FluentBadge>
+            Block: <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">@Content.Block</FluentBadge>
+            Move in: <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white">@Content.CreatedAt.ToString("dd/MM/yy")</FluentBadge> *@
+            Full name: <FluentBadge Fill="somevalue" BackgroundColor="#42c8b8" Color="Black">@($"{Content.FirstName ?? ""} {Content.MiddleName ?? ""} {Content.LastName ?? ""}")</FluentBadge>
+            Phone number: <FluentBadge Fill="somevalue" BackgroundColor="#42c8b8" Color="Black">@Content.PhoneNumber</FluentBadge>
+            Email: <FluentBadge Fill="somevalue" BackgroundColor="#42c8b8" Color="Black">@Content.Email</FluentBadge>
+        </FluentStack>
+    </FluentStack>
+</FluentDialogHeader>
+<FluentDialogBody>
+    <div style="max-height: 350px; overflow-y: auto; overflow-x: auto">
+        <FluentDataGrid Id="membersgrid" Items=@Content.Bills.AsQueryable() GridTemplateColumns="4.5fr 1.5fr 1.5fr 1fr 1fr 1.5fr"
+            TGridItem=Bill>
+            <TemplateColumn Title="Services" Align=Align.Start>
+                @if(!context!.BillServices.Any())
+                {
+                    <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No services were selected </FluentBadge> 
+                }
+                else{
+                    <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                        @foreach (var billServices in context!.BillServices)
+                        {
+                            <FluentBadge Fill="somevalue" BackgroundColor="@billServices.Service!.Color" Color="white">@billServices.Service!.Name</FluentBadge>
+                        }
+                    </FluentHorizontalScroll >
+                }
+            </TemplateColumn>
+            <PropertyColumn Title="Deadline" Property="@(c => c!.Deadline.ToString("dd/MM/yy"))" Sortable="true" Align=Align.Start />
+            <TemplateColumn Title="Paid date">
+                <FluentBadge Fill="somevalue" BackgroundColor="@SetPaidDateColor(context)"
+                             Color="white"> @(context.PaidDate.HasValue ? context.PaidDate.Value.ToString("dd/MM/yy") : "Not paid") </FluentBadge> 
+            </TemplateColumn>
+            <PropertyColumn Title="Amount" Property="@(c => CalculateTotalAmountPerBill(c))" Sortable="true" Align=Align.Start />
+            <PropertyColumn Title="Excess" Property="@(c => c.ExcessAmount)" Sortable="true" Align="Align.Start"/>
+            <PropertyColumn Title="Underpaid" Property="@(c => c.UnderPaidAmount)" Sortable="true" Align="Align.Start"/>
+            @* <TemplateColumn Title="Actions" Align=Align.Start>
+                <FluentStack>
+                    <FluentButton IconStart="@(new Icons.Regular.Size24.Copy())" Appearance="Appearance.Outline" 
+                                    OnClick="@(async () => await CopyToClipboard(context.Id.ToString()))"/>
+                </FluentStack>
+            </TemplateColumn> *@
+        </FluentDataGrid>
+    </div>
+</FluentDialogBody>
+<FluentDialogFooter>
+    @if(Content.Bills.Any()){
+        <FluentLabel Typo="Typography.H3" Color="Color.Accent"> Total Amount: @(CalculateTotalAmount()) </FluentLabel>
+    }
+    else{
+        <FluentLabel Typo="Typography.H3" Color="Color.Success"> All paid up !!!!</FluentLabel>
+    
+    }
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public MemberWithPayment Content { get; set; } = default!;
+
+    private string UserFullName(MemberWithPayment user)
+        => $"{user.FirstName} {user.MiddleName} {user.LastName}";
+
+
+    private PresenceStatus StatusConverter(bool isFullyPaid)
+        => isFullyPaid ? PresenceStatus.Available : PresenceStatus.Busy;
+
+    private string StatusTextConverter(bool isFullyPaid)
+        => isFullyPaid ? "Fully Paid" : "Not Fully Paid";
+
+    private string CalculateTotalAmount()
+    {
+        if (Content.Bills != null && Content.Bills.Any())
+        {
+            decimal totalAmount = 0;
+
+            foreach (var bill in Content.Bills)
+            {
+                foreach (var billService in bill.BillServices)
+                {
+                    if (billService.Service != null)
+                    {
+                        if (billService.Service.CalculationType == CalculationType.LotSizeMultiplication)
+                        {
+                            totalAmount += billService.Service.Price * Content.LotSize;
+                        }
+                        else if (billService.Service.CalculationType == CalculationType.DirectAddition)
+                        {
+                            totalAmount += billService.Service.Price;
+                        }
+                    }
+                }
+            }
+
+            return totalAmount.ToString("C2", CultureInfo.GetCultureInfo("en-PH")); // "N2" format specifier for two decimal places
+        }
+
+        return "₱0.00";
+    }
+
+    private string CalculateTotalAmountPerBill(Bill bill)
+    {
+        if (bill.BillServices != null && bill.BillServices.Any())
+        {
+            decimal totalAmount = 0;
+
+            foreach (var billService in bill.BillServices)
+            {
+                switch (billService.Service?.CalculationType)
+                {
+                    case CalculationType.DirectAddition:
+                        totalAmount += billService.Service.Price;
+                        break;
+                    case CalculationType.LotSizeMultiplication:
+                        totalAmount += billService.Service.Price * Content.LotSize;
+                        break;
+                    default:
+                        totalAmount += billService.Service.Price;
+                        break;
+                }
+            }
+
+
+            return totalAmount.ToString("C2", CultureInfo.GetCultureInfo("en-PH")); // "N2" format specifier for two decimal places
+        }
+
+        return "₱0.00";
+    }
+
+    private string SetPaidDateColor(Bill bill)
+    {
+        if (bill.ExcessAmount > 0)
+            return "#b8d292";
+        else if (bill.UnderPaidAmount > 0)
+            return "#ffc225";
+        else if (bill.PaidDate.HasValue)
+            return "#64e34e";
+        else return "red";
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JSRuntime.InvokeVoidAsync("clipboardInterop.copyText", text);
+        ToastService.ShowToast(ToastIntent.Success, "Copied to clipboard");
+    }
+
+}

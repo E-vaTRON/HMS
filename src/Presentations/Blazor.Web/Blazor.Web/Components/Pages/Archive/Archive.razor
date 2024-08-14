@@ -1,0 +1,200 @@
+﻿@page "/archive"
+@using System.Globalization;
+@using Blazor.Web.Components.Pages.AuthenticationComponentBase;
+
+@namespace Blazor.Web
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inherits AuthenticationComponentBase
+
+<PageTitle>Bills</PageTitle>
+
+<FluentStack VerticalGap="15" Orientation="Microsoft.FluentUI.AspNetCore.Components.Orientation.Vertical">
+
+    <FluentTabs ActiveTabId="deleted-members"
+                OnTabChange="HandleOnTabChange">
+
+
+        <FluentTab Id="deleted-members">
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size20.People())" Color="@Color.Error" />
+                <FluentSpacer Width="10" />
+                Deleted members
+            </Header>
+
+            <Content>
+
+                @if (UserItems is null)
+                {
+
+                    <FluentProgressRing />
+                }
+                else
+                {
+                    <FluentCard>
+                        <FluentDataGrid Id="membersgrid" Style="overflow:auto;" ResizableColumns=true Items=@UserItems GridTemplateColumns="1.2fr 0.7fr 0.6fr 0.9fr 0.8fr 1.2fr 1fr 1fr 2fr 1.4fr 1.4fr 1.8fr" TGridItem=User>
+                            <PropertyColumn Title="User name" Property="@(c => c!.UserName)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Block" Property="@(c => c!.Block)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Lot" Property="@(c => c!.Lot)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Lot size" Property="@(c => c!.LotSize)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Phase" Property="@(c => c!.Phase)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="First name" Property="@(c => c!.FirstName)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Middle name" Property="@(c => c!.MiddleName)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Last name" Property="@(c => c!.LastName)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Email" Property="@(c => c!.Email)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Phone number" Property="@(c => c!.PhoneNumber)" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Movie in" Property="@(c => c!.CreatedAt.ToString("dd/MM/yy"))" Sortable="true" Align=Align.Start />
+                            <TemplateColumn Title="Actions" Align=Align.Center>
+                                <FluentStack>
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.Copy())" Appearance="Appearance.Outline" @onclick=@(async () => await CopyToClipboard(context.Id)) />
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.DeleteDismiss())" Appearance="Appearance.Outline" @onclick=@(async () => await RestoreUser(context)) />
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick=@(async () => await DeleteUser(context)) />
+                                </FluentStack>
+                            </TemplateColumn>
+                        </FluentDataGrid>
+                        <br/>
+                        <div>
+                            <FluentStack HorizontalGap="5">
+                                @for (int i = 1; i <= UsersPaginationCount; i++)
+                                {
+                                    int currentPage = i;
+                                    <FluentButton Appearance="PageUsersButtonAppearance(currentPage)" @onclick="@( async () => {
+                                        await NavigateUsers(currentPage);
+                                        CurrentUsersPage = currentPage;
+                                    })">@currentPage</FluentButton>
+                                }
+                            </FluentStack>
+                        </div>
+                    </FluentCard>
+                }
+            </Content>
+        </FluentTab>
+
+        <FluentTab Id="deleted-bills">
+
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size20.Receipt())" Color="@Color.Error" />
+                <FluentSpacer Width="10" />
+                Deleted collections
+            </Header>
+
+            <Content>
+
+                @if (BillItems is null)
+                {
+                    <FluentProgressRing/>                    
+                }
+                else
+                {
+                    <FluentCard>
+                        <FluentDataGrid Id="billsgrid" 
+                                        Style="overflow:auto;" 
+                                        ResizableColumns=true 
+                                        Items=@BillItems 
+                                        GridTemplateColumns="3.0fr 2fr 2fr 2fr 2fr 1.5fr 1.5fr 1.5fr 3fr" 
+                                        TGridItem=BillWithMemberAndServicesInfo>
+                            <TemplateColumn Title="Services" Align=Align.Start>
+                                @if (!context!.Services.Any())
+                                {
+                                    <FluentBadge Fill="somevalue" BackgroundColor="black" Color="white"> No services were selected </FluentBadge>
+                                }
+                                else
+                                {
+                                    <FluentHorizontalScroll Speed="600" Easing=ScrollEasing.EaseInOut>
+                                        @foreach (var service in context!.Services)
+                                        {
+                                            <FluentBadge Fill="somevalue" BackgroundColor="@service!.Color" Color="white">@service!.Name</FluentBadge>
+                                        }
+                                    </FluentHorizontalScroll>
+                                }
+                            </TemplateColumn>
+                            <PropertyColumn Title="Created Date" Property="@(c => c!.CreatedDate.ToString("dd/MM/yy"))" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Deadline" Property="@(c => c!.Deadline.ToString("dd/MM/yy"))" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Paid Date" Property="@(c => c!.PaidDate.HasValue ? c.PaidDate.Value.ToString("dd/MM/yy") : "Not paid")" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Full name" Property="@(c => c!.User != null ? c.User.FirstName + " " + c.User.MiddleName + " " + c.User.LastName : "No user assigned")" Sortable="true" Align=Align.Start />
+                            <PropertyColumn Title="Amount" Property="@(c => c!.User != null ? Sum(c) : "No user assigned")" Sortable="true" Align=Align.Center />
+                            <PropertyColumn Title="Excess" Property="@(c => c!.ExcessAmount)" Sortable="true" Align=Align.Center />
+                            <PropertyColumn Title="Under paid" Property="@(c => c!.UnderPaidAmount)" Sortable="true" Align=Align.Center />
+                            <TemplateColumn Title="Actions" Align=Align.Center>
+                                <FluentStack>
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.DeleteDismiss())" Appearance="Appearance.Outline" @onclick=@(async () => Restore(context)) />
+                                    @* <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())" Appearance="Appearance.Outline" @onclick=@(async () => await Delete(context)) /> *@
+                                </FluentStack>
+                            </TemplateColumn>
+                        </FluentDataGrid>
+                        <br/>
+                        <div>
+                            <FluentStack HorizontalGap="5">
+                                @for (int i = 1; i <= BillsPaginationCount; i++)
+                                {
+                                    int currentPage = i;
+                                    <FluentButton Appearance="PageBillsButtonAppearance(currentPage)" @onclick="@( async () => {
+                                        await NavigateBills(currentPage);
+                                        CurrentBillsPage = currentPage;
+                                    })">@currentPage</FluentButton>
+                                }
+                            </FluentStack>
+                        </div>
+                    </FluentCard>
+                }
+            </Content>
+
+        </FluentTab>
+
+        <FluentTab Id="deleted-services">
+            <Header>
+                <FluentIcon Value="@(new Icons.Regular.Size20.ServiceBell())" Color="@Color.Error" />
+                <FluentSpacer Width="10" />
+                Deleted services
+            </Header>
+            <Content>
+                @if (BillItems is null)
+                {
+                    <FluentProgressRing/>
+                }
+                else
+                {
+                    <FluentCard>
+                        <FluentDataGrid Id="servicesgrid" 
+                                        Style="overflow:auto;" 
+                                        ResizableColumns=true 
+                                        Items=@ServiceItems 
+                                        GridTemplateColumns="10fr 10fr 10fr" 
+                                        TGridItem=ServiceModel>
+                            <TemplateColumn Title="Item description" Align=Align.Start>
+                                <FluentBadge Fill="somevalue" BackgroundColor="@context.Color" Color="white" Style="font-size:larger"> @context.Name </FluentBadge>
+                            </TemplateColumn>
+                            <PropertyColumn Title="Price" Property="@(c => c!.Price.ToString("C2", CultureInfo.GetCultureInfo("en-PH")))" Sortable="true" Align=Align.Start />
+                            <TemplateColumn Title="Actions" Align=Align.Center>
+                                <FluentStack>
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.DeleteDismiss())" 
+                                                  Appearance="Appearance.Outline" 
+                                                  @onclick="@(() => RestoreService(context))"/>
+
+                                    <FluentButton IconStart="@(new Icons.Regular.Size24.Delete())"
+                                                  Appearance="Appearance.Outline"
+                                                  @onclick="@(() => DeleteService(context))" />
+                                </FluentStack>
+                            </TemplateColumn>
+                        </FluentDataGrid>
+                        <br/>
+                        <div>
+                            <FluentStack HorizontalGap="5">
+                                @for (int i = 1; i <= ServicesPaginationCount; i++)
+                                {
+                                    int currentPage = i;
+                                    <FluentButton Appearance="PageServicesButtonAppearance(currentPage)" @onclick="@( async () => {
+                                        await NavigateServices(currentPage);
+                                        CurrentBillsPage = currentPage;
+                                    })">@currentPage</FluentButton>
+                                }
+                            </FluentStack>
+                        </div>
+                    </FluentCard>
+                }
+            </Content>
+        </FluentTab>
+
+    </FluentTabs>
+
+</FluentStack>

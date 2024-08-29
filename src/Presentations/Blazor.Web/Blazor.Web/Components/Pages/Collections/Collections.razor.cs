@@ -316,9 +316,9 @@ public partial class Collections : AuthenticationComponentBase
                 case CalculationType.DirectAddition:
                     amount += (service.Price * service.Quantity);
                     break;
-                case CalculationType.LotSizeMultiplication:
-                    amount += service.Price * user.LotSize;
-                    break;
+                //case CalculationType.LotSizeMultiplication:
+                //    amount += service.Price * user.LotSize;
+                //    break;
                 default:
                     amount += (service.Price * service.Quantity);
                     break;

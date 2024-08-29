@@ -40,9 +40,9 @@
         {
             switch (service.CalculationType)
             {
-                case CalculationType.LotSizeMultiplication:
-                    totalAmount += service.Price * Content.User!.LotSize;
-                    break;
+                // case CalculationType.LotSizeMultiplication:
+                //     totalAmount += service.Price * Content.User!.LotSize;
+                //     break;
                 case CalculationType.DirectAddition:
                     totalAmount += (service.Price * service.Quantity);
                     break;

@@ -546,7 +546,7 @@ public partial class Members : AuthenticationComponentBase
         if (UsersInDatabase is null)
             return;
 
-        string fileName = "LBA4hoai members";
+        string fileName = "HMS members";
         byte[] excelData = await GenerateExcel(UsersInDatabase);
         await JSRuntime.InvokeVoidAsync("saveAsFile",
                                         fileName,

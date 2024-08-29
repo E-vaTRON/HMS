@@ -4,11 +4,11 @@ public static class ServicesExtension
 {
     public static void RegisterLogicProvider(this IServiceCollection services)
     {
-        //string baseUrl = "https://localhost:7192/api";
         //string baseUrl = "https://HMShoai.azurewebsites.net/api";
-        //string baseUrl = "https://np7zrwrp-7192.asse.devtunnels.ms/api";
-        string baseUrl = "https://localhost:7192/api";
-        
+        //string baseUrl = "https://xs5tn1vh-7192.asse.devtunnels.ms/api";
+        string baseUrl = "https://kwfj0fw0-7192.asse.devtunnels.ms/api";
+        //string baseUrl = "https://localhost:7192/api";
+
         services.AddTransient<HMSRefitHttpClientHandler>();
 
         services.AddRefitClient<AuthenticationRefit>()

@@ -1,6 +1,4 @@
-﻿using Refit;
-
-namespace HMS.LogicProvider;
+﻿namespace HMS.LogicProvider;
 
 public interface AuthenticationRefit
 {

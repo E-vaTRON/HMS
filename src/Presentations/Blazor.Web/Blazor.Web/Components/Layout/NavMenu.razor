@@ -3,7 +3,7 @@
 @inject UserManager _userManager;
 
 <FluentCard Width="50" style="padding: 5px; margin-left: 15px" @rendermode="RenderMode.InteractiveServer">
-    <FluentNavMenuTree Width="250" style="margin: 5px" Collapsible="true" @bind-Expanded="@isExpanded" Title="LBA4" @rendermode="RenderMode.InteractiveServer">
+    <FluentNavMenuTree Width="250" style="margin: 5px" Collapsible="true" @bind-Expanded="@isExpanded" Title="HMS" @rendermode="RenderMode.InteractiveServer">
         <FluentNavMenuLink Href="/home" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavMenuLink>
         <FluentNavMenuLink Href="/announcements" Icon="@(new Icons.Regular.Size20.Megaphone())" IconColor="Color.Accent">Announcements</FluentNavMenuLink>
         <FluentNavMenuLink Href="/members" Icon="@(new Icons.Regular.Size20.People())" IconColor="Color.Accent">Members list</FluentNavMenuLink>

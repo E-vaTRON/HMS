@@ -40,7 +40,7 @@
                     <FluentTextField @bind-Value="@Content.UserName" xs="12">User Name:
                         <FluentIcon Value="@(new Icons.Regular.Size16.ContactCard())" Slot="start" Color="Color.Neutral" />
                     </FluentTextField>
-                    <FluentNumberField @bind-Value="@Content.Phase" Min="0">Phase:
+                    @* <FluentNumberField @bind-Value="@Content.Phase" Min="0">Phase:
                         <FluentIcon Value="@(new Icons.Regular.Size16.TableResizeColumn())" Slot="start" Color="Color.Neutral" />
                     </FluentNumberField>
                     <FluentNumberField @bind-Value="@Content.Block" Min="0">Block:
@@ -48,7 +48,7 @@
                     </FluentNumberField>
                     <FluentNumberField @bind-Value="@Content.Lot" Min="0">Lot:
                         <FluentIcon Value="@(new Icons.Regular.Size16.Grid())" Slot="start" Color="Color.Neutral" />
-                    </FluentNumberField>
+                    </FluentNumberField> *@
                     <FluentTextField @bind-Value="@Content.Street" xs="12">Street:
                         <FluentIcon Value="@(new Icons.Regular.Size16.AppFolder())" Slot="start" Color="Color.Neutral" />
                     </FluentTextField>
